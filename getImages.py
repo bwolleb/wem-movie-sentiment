@@ -29,6 +29,9 @@ def main():
 			if img == "":
 				continue
 			filename = img.replace(" ", "_")
+			if filename.lower().endswith(".webm"):
+				print("Ignoring video")
+				continue
 			chksum = hashlib.md5(filename.encode("utf-8")).hexdigest()
 			url = baseurl.format(h0=chksum[0], h01=chksum[:2], filename=filename)
 			r = requests.get(url, headers=headers)
