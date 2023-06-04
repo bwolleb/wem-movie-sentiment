@@ -135,9 +135,22 @@ elif st.session_state.selected_uuid is not None:
             # display the plot showing the evolution of sentiment over time
             analysis_data = loadJson(f'{path}\\analysis\{selected_movie["uuid"]}.json')
             x, neg, pos, diff = computeNormAvg(analysis_data, 64)
-            display_pos = st.checkbox('positive',value=True)
-            display_neg = st.checkbox('negative',value=True)
-            display_diff = st.checkbox('delta',value=False)
+            # display_pos = st.checkbox('positive',value=True)
+            # display_neg = st.checkbox('negative',value=True)
+            # display_diff = st.checkbox('delta',value=False)
+
+            # radio button to select what to plot
+            plot_type = st.radio("", ["Positive & Negative", "Delta"],horizontal=True)
+            if plot_type == "Positive & Negative":
+                display_pos = True
+                display_neg = True
+                display_diff = False
+            elif plot_type == "Delta":
+                display_pos = False
+                display_neg = False
+                display_diff = True
+
+
 
             # prepare the data to be sent to the plot function according to the checkboxes
             if display_pos:
