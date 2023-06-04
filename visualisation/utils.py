@@ -1,36 +1,10 @@
-import streamlit as st
-import pandas as pd
+
+import json
 import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
-import json
-
-
-st.set_page_config(layout="centered")
-
-path = 'E:\Technologie\Master\Webm\wem'
-
-with open(f'{path}\\movies.json',encoding="utf8") as f:
-    data = json.load(f)
-
-with open(f'{path}\\nlp.json',encoding="utf8") as f:
-    data_nlp = json.load(f)
-
-
-df_data = pd.DataFrame(data)
-
-df_nlp = pd.DataFrame(data_nlp).T
-
-# set the uuid as index
-df_data.set_index('uuid', inplace=True)
- 
-# join the two dataframes on the index and uuid
-df = df_data.join(df_nlp, how="inner")
-
-# add a column uuid from the index
-df['uuid'] = df.index
-
-st.write(df)
+import pandas as pd
+import streamlit as st
 
 def loadJson(path):
     f = open(path)
@@ -55,19 +29,19 @@ def computeNormAvg(movie, avgWidth):
     return normx, avgNeg, avgPos, diff
 
 def plot_plt(x, neg=None, pos=None, diff=None, poly=None):
-    fig, ax = plt.subplots(figsize=(12, 6), constrained_layout=True)
+    fig, ax = plt.subplots(figsize=(5,2.5), constrained_layout=True)
     if neg is not None: ax.plot(x, neg, color="red", label="Negative Sentiment")
     if pos is not None: ax.plot(x, pos, color="green", label="Positive Sentiment")
     if diff is not None: ax.plot(x, diff, color="blue", label="Delta Sentiment")
     if poly is not None: ax.plot(x, poly, color="grey", label="Trend Line")
 
     ax.axhline(y=0, color="black", linestyle='--')
-    ax.set_xlabel("Time (%)", fontsize=16)
-    ax.set_ylabel("Sentiment", fontsize=16)
-    ax.tick_params(axis='both', which='major', labelsize=14)
-    ax.legend(loc='upper left', fontsize=14)
+    ax.set_xlabel("Time (%)", fontsize=10)
+    ax.set_ylabel("Sentiment", fontsize=10)
+    ax.tick_params(axis='both', which='major', labelsize=10)
+    ax.legend(loc='upper left', fontsize=10)
 
-    st.pyplot(fig)
+    st.pyplot(fig,use_container_width=False)
 
 def plot_st(x, neg=None, pos=None, diff=None, poly=None):
     data = {}
@@ -101,45 +75,3 @@ def plot_sns(x, neg=None, pos=None, diff=None, poly=None):
     ax.legend(loc='upper left', fontsize=14)
 
     st.pyplot(fig)
-
-
-
-# get the first row of the dataframe
-rows = df.iloc[:2]
-
-
-for l,s in rows.iterrows():
-    n_path = f'{path}\\analysis\{s["uuid"]}.json'
-
-analysis_data = loadJson(n_path)
-
-x, neg, pos, diff = computeNormAvg(analysis_data, 128)
-
-# add checkbox for the different plots
-if st.checkbox('Plot with matplotlib'):
-    plot_plt(x, neg, pos)
-if st.checkbox('Plot with streamlit'):
-    plot_st(x, neg, pos)
-
-
-display_pos = st.checkbox('positive',value=True)
-display_neg = st.checkbox('negative',value=True)
-display_diff = st.checkbox('delta',value=False)
-
-if display_pos:
-    dpos = pos
-else:
-    dpos = None
-
-if display_neg:
-    dneg = neg
-else:   
-    dneg = None
-
-if display_diff:
-    ddiff = diff
-else:
-    ddiff = None
-
-
-plot_plt(x, dneg, dpos, ddiff)
