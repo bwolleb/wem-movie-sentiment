@@ -1,3 +1,4 @@
+import math
 import streamlit as st
 import pandas as pd
 import numpy as np
@@ -20,9 +21,21 @@ path = 'E:\Technologie\Master\Webm\wem'
 with open(f'{path}\movies.json',encoding="utf8") as f:
     data = json.load(f)
 
+with open(f'{path}\\nlp.json',encoding="utf8") as f:
+    data_nlp = json.load(f)
 
-df = pd.DataFrame(data)
+df_nlp = pd.DataFrame(data_nlp).T
 
+df_data = pd.DataFrame(data)
+
+# set the uuid as index
+df_data.set_index('uuid', inplace=True)
+ 
+# join the two dataframes on the index and uuid
+df = df_data.join(df_nlp, how="inner")
+
+# add a column uuid from the index
+df['uuid'] = df.index
 
 # Create a simple search engine
 
@@ -85,7 +98,9 @@ if text_search:
         # dislay the title
         st.markdown(f"### Movie sentiment analysis : {selected_movie['title']}")
 
-        cols = st.columns((1,4))
+        
+        cols = st.columns((1,5))
+
 
         with cols[0]:
             # display the image
@@ -93,14 +108,27 @@ if text_search:
             st.image(image, use_column_width=True)
 
         with cols[1]:
-            # display the film title and year
-            st.markdown(f"**Year** : {selected_movie['year']}")
-            # display the actors
-            st.markdown(f"**Actors** : {', '.join(selected_movie['actors'])}")
 
-            # display the synopsis
-            with st.expander("**Synopsis**"):
-                st.write(selected_movie['plot'].replace('$', '\\$'))
+            tabs = st.tabs(["Informations", "Sentiment analysis"])
+            # Information tab
+            with tabs[0]:
+                # display the film title and year
+                st.markdown(f"**Year** : {selected_movie['year']}")
+                # display the actors
+                st.markdown(f"**Actors** : {', '.join(selected_movie['actors'])}")
+
+                # display the plot
+                with st.expander("**Plot**"):
+                    # test if the plot is a string
+                    if isinstance(selected_movie['plot'], str):
+                        st.write(selected_movie['plot'].replace('$', '\\$'))
+                    else:
+                        st.write("No plot available")
+
+            # Sentiment analysis tab
+            with tabs[1]:
+                st.write("TODO")
+
 else:
     # for test purposes, display the entire dataframe
     st.write(df)
