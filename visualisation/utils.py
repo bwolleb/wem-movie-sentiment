@@ -36,12 +36,12 @@ def plot_plt(x, neg=None, pos=None, diff=None, poly=None):
     if poly is not None: ax.plot(x, poly, color="grey", label="Trend Line")
 
     ax.axhline(y=0, color="black", linestyle='--')
-    ax.set_xlabel("Time (%)", fontsize=10)
-    ax.set_ylabel("Sentiment", fontsize=10)
-    ax.tick_params(axis='both', which='major', labelsize=10)
-    ax.legend(loc='upper left', fontsize=10)
+    ax.set_xlabel("Time (%)", fontsize=6)
+    ax.set_ylabel("Sentiment", fontsize=6)
+    ax.tick_params(axis='both', which='major', labelsize=6)
+    ax.legend(loc='upper left', fontsize=6)
 
-    st.pyplot(fig,use_container_width=False)
+    st.pyplot(fig,use_container_width=True)
 
 def plot_st(x, neg=None, pos=None, diff=None, poly=None):
     data = {}

@@ -93,7 +93,7 @@ elif st.session_state.selected_uuid is not None:
     st.markdown(f"### Movie sentiment analysis : {selected_movie['title']}")
 
     
-    cols = st.columns((1,5))
+    cols = st.columns((10,3,40,4))
 
 
     with cols[0]:
@@ -101,9 +101,9 @@ elif st.session_state.selected_uuid is not None:
         image = Image.open(f'{path}\images\\{selected_movie["uuid"]}')
         st.image(image, use_column_width=True)
 
-    with cols[1]:
+    with cols[2]:
 
-        tabs = st.tabs(["Informations", "Sentiment analysis"])
+        tabs = st.tabs(["Informations", "Sentiment evolution"])
         # Information tab
         with tabs[0]:
             # display the film title and year
@@ -111,8 +111,19 @@ elif st.session_state.selected_uuid is not None:
             # display the actors
             st.markdown(f"**Actors** : {', '.join(selected_movie['actors'])}")
 
+            # Display the tags
+            st.markdown(f"**Tags** : {', '.join(selected_movie['tags'])}")
+
+            # Display the readability score
+            st.markdown(f" 🤓 **Readability score** : {selected_movie['readability']}, **Flesh score** : {selected_movie['fre']}")
+
+            # Display the Lexical variety score
+            st.markdown(f" 📚 **Lexical variety score (TTR)** : {selected_movie['ttr']:.2f}")
+
+            
+
             # display the plot
-            with st.expander("**Plot**"):
+            with st.expander("**Plot of the movie**"):
                 # test if the plot is a string
                 if isinstance(selected_movie['plot'], str):
                     st.write(selected_movie['plot'].replace('$', '\\$'))
@@ -123,7 +134,7 @@ elif st.session_state.selected_uuid is not None:
         with tabs[1]:
             # display the plot showing the evolution of sentiment over time
             analysis_data = loadJson(f'{path}\\analysis\{selected_movie["uuid"]}.json')
-            x, neg, pos, diff = computeNormAvg(analysis_data, 128)
+            x, neg, pos, diff = computeNormAvg(analysis_data, 64)
             display_pos = st.checkbox('positive',value=True)
             display_neg = st.checkbox('negative',value=True)
             display_diff = st.checkbox('delta',value=False)
@@ -144,7 +155,7 @@ elif st.session_state.selected_uuid is not None:
             else:
                 ddiff = None
 
-            plot_plt(x, dpos, dneg, ddiff)
-#else:
+            plot_plt(x, dneg, dpos, ddiff)
+if not st.session_state.last_search and st.session_state.selected_uuid is None:
     # for test purposes, display the entire dataframe
-    #st.write(df)
+    st.write(df)
