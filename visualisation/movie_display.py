@@ -15,7 +15,8 @@ st.set_page_config(layout="wide")
 if 'selected_uuid' not in st.session_state:
     st.session_state['selected_uuid'] = None
 
-st.write(st.session_state.selected_uuid)
+if 'last_search' not in st.session_state:
+    st.session_state['last_search'] = None
 
 st.write("""
 ### F.U.C.K.C.E.D.R.I.C.
@@ -31,7 +32,6 @@ with open(f'{path}\\nlp.json',encoding="utf8") as f:
     data_nlp = json.load(f)
 
 df_nlp = pd.DataFrame(data_nlp).T
-
 df_data = pd.DataFrame(data)
 
 # set the uuid as index
@@ -44,119 +44,107 @@ df = df_data.join(df_nlp, how="inner")
 df['uuid'] = df.index
 
 # Create a simple search engine
-
 text_search = st.text_input("Search films by title", value="")
 
 # Filter the dataframe using masks // lowering // de-accent the vowels
 m1 = df["title"].str.lower().str.normalize('NFKD').str.encode('ascii', errors='ignore').str.decode('utf-8').str.contains(text_search.lower())
+
 #m2 = df["year"].astype(str).str.contains(text_search)
-
-
 #df_search = df[m1 | m2]
 
 df_search = df[m1]
 
-place_holders = []
+
+if st.session_state.last_search != text_search:
+    st.session_state.last_search = text_search
+    st.session_state.selected_uuid = None
 
 
 # Show the results, if you have a text_search
-if text_search:
-    #st.write(df_search)
+if st.session_state.last_search and st.session_state.selected_uuid is None:
     N_cards_per_row = 8
-    main_container = st.container()
 
     for n_row, row in df_search.reset_index().iterrows():
         i = n_row % N_cards_per_row
         if i == 0:
-            placeholder = main_container.empty()
-            place_holders.append(placeholder)
-            placeholder.write("---")
-            cols = main_container.columns(N_cards_per_row, gap="large")
+            st.write("---")
+            cols = st.columns(N_cards_per_row, gap="large")
         # draw the card
         with cols[n_row % N_cards_per_row]:
 
             # Load the image from disk.
             image = Image.open(f'{path}\images\\{row["uuid"]}')
             # display the image
-            image_placeholder = st.empty()
-            place_holders.append(image_placeholder)
-            image_placeholder.image(image, use_column_width=True)
-
-            # titles and buttons
-            markdown_placeholder = st.empty()
-            place_holders.append(markdown_placeholder)
-            markdown_placeholder.markdown(f"**{row['title']}**, {row['year']}")
-
-            button_placeholder = st.empty()
-            place_holders.append(button_placeholder)
-            if button_placeholder.button(f"Select", key=row['uuid']):
-                st.session_state.selected_uuid = row["uuid"]
-                
-
-    if st.session_state.selected_uuid is not None:
-        
-        main_container.empty()  # Clear the entire container, including columns
-        for p in place_holders:  # Clear content of each placeholder
-            p.empty()
-
-        # select line in the dataframe corresponding to the selected movie
-        selected_movie = df[df["uuid"] == st.session_state.selected_uuid].to_dict(orient="records")[0]
-        # dislay the title
-        st.markdown(f"### Movie sentiment analysis : {selected_movie['title']}")
-
-        
-        cols = st.columns((1,5))
-
-
-        with cols[0]:
-            # display the image
-            image = Image.open(f'{path}\images\\{selected_movie["uuid"]}')
             st.image(image, use_column_width=True)
 
-        with cols[1]:
+            # titles and buttons
+            st.markdown(f"**{row['title']}**, {row['year']}")
 
-            tabs = st.tabs(["Informations", "Sentiment analysis"])
-            # Information tab
-            with tabs[0]:
-                # display the film title and year
-                st.markdown(f"**Year** : {selected_movie['year']}")
-                # display the actors
-                st.markdown(f"**Actors** : {', '.join(selected_movie['actors'])}")
+            if st.button(f"Select", key=row['uuid']):
+                st.session_state.selected_uuid = row["uuid"]
+                st.experimental_rerun()
+                
 
-                # display the plot
-                with st.expander("**Plot**"):
-                    # test if the plot is a string
-                    if isinstance(selected_movie['plot'], str):
-                        st.write(selected_movie['plot'].replace('$', '\\$'))
-                    else:
-                        st.write("No plot available")
+elif st.session_state.selected_uuid is not None:
+    
+    # select line in the dataframe corresponding to the selected movie
+    selected_movie = df[df["uuid"] == st.session_state.selected_uuid].to_dict(orient="records")[0]
+    # dislay the title
+    st.markdown(f"### Movie sentiment analysis : {selected_movie['title']}")
 
-            # Sentiment analysis tab
-            with tabs[1]:
-                # display the plot showing the evolution of sentiment over time
-                analysis_data = loadJson(f'{path}\\analysis\{selected_movie["uuid"]}.json')
-                x, neg, pos, diff = computeNormAvg(analysis_data, 128)
-                display_pos = st.checkbox('positive',value=True)
-                display_neg = st.checkbox('negative',value=True)
-                display_diff = st.checkbox('delta',value=False)
+    
+    cols = st.columns((1,5))
 
-                # prepare the data to be sent to the plot function according to the checkboxes
-                if display_pos:
-                    dpos = pos
+
+    with cols[0]:
+        # display the image
+        image = Image.open(f'{path}\images\\{selected_movie["uuid"]}')
+        st.image(image, use_column_width=True)
+
+    with cols[1]:
+
+        tabs = st.tabs(["Informations", "Sentiment analysis"])
+        # Information tab
+        with tabs[0]:
+            # display the film title and year
+            st.markdown(f"**Year** : {selected_movie['year']}")
+            # display the actors
+            st.markdown(f"**Actors** : {', '.join(selected_movie['actors'])}")
+
+            # display the plot
+            with st.expander("**Plot**"):
+                # test if the plot is a string
+                if isinstance(selected_movie['plot'], str):
+                    st.write(selected_movie['plot'].replace('$', '\\$'))
                 else:
-                    dpos = None
+                    st.write("No plot available")
 
-                if display_neg:
-                    dneg = neg
-                else:   
-                    dneg = None
+        # Sentiment analysis tab
+        with tabs[1]:
+            # display the plot showing the evolution of sentiment over time
+            analysis_data = loadJson(f'{path}\\analysis\{selected_movie["uuid"]}.json')
+            x, neg, pos, diff = computeNormAvg(analysis_data, 128)
+            display_pos = st.checkbox('positive',value=True)
+            display_neg = st.checkbox('negative',value=True)
+            display_diff = st.checkbox('delta',value=False)
 
-                if display_diff:
-                    ddiff = diff
-                else:
-                    ddiff = None
+            # prepare the data to be sent to the plot function according to the checkboxes
+            if display_pos:
+                dpos = pos
+            else:
+                dpos = None
 
-                plot_plt(x, dpos, dneg, ddiff)
-else:
+            if display_neg:
+                dneg = neg
+            else:   
+                dneg = None
+
+            if display_diff:
+                ddiff = diff
+            else:
+                ddiff = None
+
+            plot_plt(x, dpos, dneg, ddiff)
+#else:
     # for test purposes, display the entire dataframe
-    st.write(df)
+    #st.write(df)
