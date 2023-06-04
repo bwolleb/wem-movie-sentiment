@@ -7,6 +7,8 @@ import json
 from PIL import Image
 
 
+st.set_page_config(layout="wide")
+
 
 st.write("""
 ### F.U.C.K.C.E.D.R.I.C.
@@ -31,19 +33,19 @@ m1 = df["title"].str.lower().str.normalize('NFKD').str.encode('ascii', errors='i
 #m2 = df["year"].astype(str).str.contains(text_search)
 
 
-
-
 #df_search = df[m1 | m2]
 
 df_search = df[m1]
 
-selected_movie = None
+selected_movie_uuid = None
 place_holders = []
+
+
 
 # Show the results, if you have a text_search
 if text_search:
     #st.write(df_search)
-    N_cards_per_row = 3
+    N_cards_per_row = 8
     main_container = st.container()
 
     for n_row, row in df_search.reset_index().iterrows():
@@ -71,13 +73,34 @@ if text_search:
             button_placeholder = st.empty()
             place_holders.append(button_placeholder)
             if button_placeholder.button(f"Select", key=row['uuid']):
-                selected_movie = row["uuid"]
+                selected_movie_uuid = row["uuid"]
 
-    if selected_movie is not None:
+    if selected_movie_uuid is not None:
         main_container.empty()  # Clear the entire container, including columns
         for p in place_holders:  # Clear content of each placeholder
             p.empty()
-        st.markdown(f"### Selected Movie: {selected_movie}")
-        st.write("Display detailed information about the selected movie here.")
+
+        # select line in the dataframe corresponding to the selected movie
+        selected_movie = df[df["uuid"] == selected_movie_uuid].to_dict(orient="records")[0]
+        # dislay the title
+        st.markdown(f"### Movie sentiment analysis : {selected_movie['title']}")
+
+        cols = st.columns((1,4))
+
+        with cols[0]:
+            # display the image
+            image = Image.open(f'{path}\images\\{selected_movie["uuid"]}')
+            st.image(image, use_column_width=True)
+
+        with cols[1]:
+            # display the film title and year
+            st.markdown(f"**Year** : {selected_movie['year']}")
+            # display the actors
+            st.markdown(f"**Actors** : {', '.join(selected_movie['actors'])}")
+
+            # display the synopsis
+            with st.expander("**Synopsis**"):
+                st.write(selected_movie['plot'].replace('$', '\\$'))
 else:
+    # for test purposes, display the entire dataframe
     st.write(df)
