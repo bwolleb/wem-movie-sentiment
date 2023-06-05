@@ -1,4 +1,4 @@
-
+import os
 import json
 import numpy as np
 import matplotlib.pyplot as plt
@@ -146,7 +146,7 @@ def display_cards(df,path,N_cards_per_row = 8,display_plot=False,selected_movie=
                 plot_signature(selected_movie["signature"][2],row["signature"][2])
 
             # Load the image from disk.
-            image = Image.open(f'{path}\images\\{row["uuid"]}')
+            image = Image.open(os.path.join(path, "images", row["uuid"]))
             # display the image
             st.image(image, use_column_width=True)
 

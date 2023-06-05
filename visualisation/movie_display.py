@@ -8,7 +8,7 @@ import json
 from PIL import Image
 from utils import loadJson,computeNormAvg, plot_plt, plot_st,plot_sns,get_best_matches_uuid,display_cards
 import sys
-
+import os
 
 st.set_page_config(layout="wide")
 
@@ -34,12 +34,8 @@ else:
     exit(1)
 
 def load_data():
-
-    with open(f'{path}\movies.json',encoding="utf8") as f:
-        data = json.load(f)
-
-    with open(f'{path}\\nlp.json',encoding="utf8") as f:
-        data_nlp = json.load(f)
+    data = loadJson(os.path.join(path, "movies.json"))
+    data_nlp = loadJson(os.path.join(path, "nlp.json"))
     return data, data_nlp
 
 def prepare_data(data, data_nlp):
@@ -102,7 +98,7 @@ elif st.session_state.selected_uuid is not None:
 
     with cols[0]:
         # display the image
-        image = Image.open(f'{path}\images\\{selected_movie["uuid"]}')
+        image = Image.open(os.path.join(path, "images", selected_movie["uuid"]))
         st.image(image, use_column_width=True)
 
     with cols[2]:
@@ -140,7 +136,7 @@ elif st.session_state.selected_uuid is not None:
         # Sentiment analysis tab
         with tabs[1]:
             # display the plot showing the evolution of sentiment over time
-            analysis_data = loadJson(f'{path}\\analysis\{selected_movie["uuid"]}.json')
+            analysis_data = loadJson(os.path.join(path, "analysis", selected_movie["uuid"] + ".json"))
             x, neg, pos, diff = computeNormAvg(analysis_data, 128)
             # display_pos = st.checkbox('positive',value=True)
             # display_neg = st.checkbox('negative',value=True)
