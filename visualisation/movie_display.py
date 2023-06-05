@@ -7,6 +7,7 @@ import seaborn as sns
 import json
 from PIL import Image
 from utils import loadJson,computeNormAvg, plot_plt, plot_st,plot_sns,get_best_matches_uuid,display_cards
+import sys
 
 
 st.set_page_config(layout="wide")
@@ -23,29 +24,48 @@ st.write("""
 Film Understanding, Classification, Knowledge, and Comprehensive Emotion Detection, Revealing Intricate Connections
 """)
 
-path = 'E:\Technologie\Master\Webm\wem'
+# get first argument of the command line
 
-with open(f'{path}\movies.json',encoding="utf8") as f:
-    data = json.load(f)
+if len(sys.argv) > 1:
+    path = sys.argv[1]
+    path = path.replace("[", "").replace("]", "")
+else:
+    print("Please provide the path to the data folder as an argument")
+    exit(1)
 
-with open(f'{path}\\nlp.json',encoding="utf8") as f:
-    data_nlp = json.load(f)
+def load_data():
+
+    with open(f'{path}\movies.json',encoding="utf8") as f:
+        data = json.load(f)
+
+    with open(f'{path}\\nlp.json',encoding="utf8") as f:
+        data_nlp = json.load(f)
+    return data, data_nlp
+
+def prepare_data(data, data_nlp):
+
+    df_nlp = pd.DataFrame(data_nlp).T
+    df_data = pd.DataFrame(data)
+
+    # set the uuid as index
+    df_data.set_index('uuid', inplace=True)
+    
+    # join the two dataframes on the index and uuid
+    df = df_data.join(df_nlp, how="inner")
+
+    # add a column uuid from the index
+    df['uuid'] = df.index
+
+    # delete the rows where the signature is missing
+    df = df[df['signature'].notna()]
+
+    df = df[df['tags'].notna()]
+
+    return df
 
 
-df_nlp = pd.DataFrame(data_nlp).T
-df_data = pd.DataFrame(data)
-
-# set the uuid as index
-df_data.set_index('uuid', inplace=True)
- 
-# join the two dataframes on the index and uuid
-df = df_data.join(df_nlp, how="inner")
-
-# add a column uuid from the index
-df['uuid'] = df.index
-
-# delete the rows where the signature is missing
-df = df[df['signature'].notna()]
+data, data_nlp = load_data()
+df = prepare_data(data, data_nlp)
 
 # Create a simple search engine
 text_search = st.text_input("Search films by title", value="")
@@ -96,7 +116,10 @@ elif st.session_state.selected_uuid is not None:
             st.markdown(f"**Actors** : {', '.join(selected_movie['actors'])}")
 
             # Display the tags
-            st.markdown(f"**Tags** : {', '.join(selected_movie['tags'])}")
+            style = "background-color: lightblue; padding: 2px; margin: 2px; display: inline-block; border-radius: 10px;"
+            tags_str = ''.join([f'<span style="{style}">{tag.strip()}</span>' for tag in selected_movie['tags']])
+
+
 
             # Display the readability score
             st.markdown(f" 🤓 **Readability score** : {selected_movie['readability']}, **Flesh score** : {selected_movie['fre']}")
@@ -157,8 +180,11 @@ elif st.session_state.selected_uuid is not None:
 
         # Dramatic signature matching tab
         with tabs[2]:
-            best_matches_id = get_best_matches_uuid(df["signature"].to_dict(), selected_movie["uuid"], n=4)
+            # give a control to choose the number of matches to display
+            n_matches = st.slider("Number of matchs", min_value=1, max_value=12, value=4)
+            best_matches_id = get_best_matches_uuid(df["signature"].to_dict(), selected_movie["uuid"], n=n_matches)
             df_best_matches = df[df["uuid"].isin(best_matches_id)]
+
             display_cards(df_best_matches,path,N_cards_per_row=4,display_plot=True,selected_movie=selected_movie)
             pass
 
@@ -168,8 +194,6 @@ elif st.session_state.selected_uuid is not None:
 
 if not st.session_state.last_search and st.session_state.selected_uuid is None:
     # for test purposes, display the entire dataframe
-    st.write(df)
-    best_matches_id = get_best_matches_uuid(df["signature"].to_dict(), n=4)
-    df_best_matches = df[df["uuid"].isin(best_matches_id)]
-    df_best_matches
+    #st.write(df)
     #st.write(df["signature"].to_dict())
+    pass

@@ -7,6 +7,7 @@ import pandas as pd
 import streamlit as st
 from PIL import Image
 
+@st.cache_data
 def loadJson(path):
     f = open(path)
     data = json.load(f)
@@ -75,7 +76,9 @@ def plot_sns(x, neg=None, pos=None, diff=None, poly=None):
     ax.tick_params(axis='both', which='major', labelsize=14)
     ax.legend(loc='upper left', fontsize=14)
 
+
     st.pyplot(fig)
+
 
 def plot_signature(signature_ref,signature):
 
@@ -86,7 +89,7 @@ def plot_signature(signature_ref,signature):
 
 
     sns.set_style("whitegrid")
-    fig, ax = plt.subplots(figsize=(4, 2), constrained_layout=True)
+    fig, ax = plt.subplots(figsize=(4, 2.5), constrained_layout=True)
 
     sns.lineplot(x=x, y=comp_ref, ax=ax, color="red", label="Reference Signature")
     sns.lineplot(x=x, y=comp_current, ax=ax, color="blue", label="Signature")
@@ -123,7 +126,7 @@ def get_best_matches_uuid(sign, ref="68a31a0cf30411edb451b8aeed79c0cc",n=4):
     refDiffComp = np.array(comp[refId])
     mseComp = ((npComp - refDiffComp)**2).mean(axis=1)
     sortedMseComp = mseComp.argsort()
-    best4CompIds = [i for i in sortedMseComp[:n+1] if i != refId][:n] # Item itself is probably first
+    best4CompIds = [i for i in sortedMseComp[:n+1] if i != refId]
     return [ids[i] for i in best4CompIds]
     
 def display_cards(df,path,N_cards_per_row = 8,display_plot=False,selected_movie=None):
@@ -150,6 +153,12 @@ def display_cards(df,path,N_cards_per_row = 8,display_plot=False,selected_movie=
             # titles and buttons
             st.markdown(f"**{row['title']}**, {row['year']}")
 
+            # Display the tags
+            style = "background-color: lightblue; padding: 2px; margin: 2px; display: inline-block; border-radius: 10px;"
+            tags_str = ''.join([f'<span style="{style}">{tag.strip()}</span>' for tag in row['tags']])
+            st.markdown(f"**Tags** : {tags_str}",unsafe_allow_html=True)
+
             if st.button(f"Select", key=row['uuid']):
                 st.session_state.selected_uuid = row["uuid"]
                 st.experimental_rerun()
+    return
