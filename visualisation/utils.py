@@ -77,10 +77,32 @@ def plot_sns(x, neg=None, pos=None, diff=None, poly=None):
 
     st.pyplot(fig)
 
+def plot_signature(signature_ref,signature):
+
+    res = 100
+    x = [i / res * 100 for i in range(res + 1)]
+    comp_ref = func(x, signature_ref)
+    comp_current = func(x, signature)
+
+
+    sns.set_style("whitegrid")
+    fig, ax = plt.subplots(figsize=(4, 2), constrained_layout=True)
+
+    sns.lineplot(x=x, y=comp_ref, ax=ax, color="red", label="Reference Signature")
+    sns.lineplot(x=x, y=comp_current, ax=ax, color="blue", label="Signature")
+
+    ax.axhline(y=0, color="black", linestyle='--')
+    ax.set_xlabel("Time (%)", fontsize=10)
+    ax.set_ylabel("Sentiment", fontsize=10)
+    ax.tick_params(axis='both', which='major', labelsize=10)
+    ax.legend(loc='upper left', fontsize=10)
+
+    st.pyplot(fig)
+
+def func(x, poly):
+    return [sum([val**i * poly[i] for i in range(len(poly))]) for val in x]
 
 def get_best_matches_uuid(sign, ref="68a31a0cf30411edb451b8aeed79c0cc",n=4):
-    def func(x, poly):
-        return [sum([val**i * poly[i] for i in range(len(poly))]) for val in x]
 
     ids = []
     signatures = []
@@ -104,15 +126,21 @@ def get_best_matches_uuid(sign, ref="68a31a0cf30411edb451b8aeed79c0cc",n=4):
     best4CompIds = [i for i in sortedMseComp[:n+1] if i != refId][:n] # Item itself is probably first
     return [ids[i] for i in best4CompIds]
     
-def display_cards(df,path,N_cards_per_row = 8):
+def display_cards(df,path,N_cards_per_row = 8,display_plot=False,selected_movie=None):
 
     for n_row, row in df.reset_index().iterrows():
         i = n_row % N_cards_per_row
         if i == 0:
-            st.write("---")
+            if not display_plot:
+                st.write("---")
             cols = st.columns(N_cards_per_row, gap="large")
         # draw the card
         with cols[n_row % N_cards_per_row]:
+
+            if display_plot and selected_movie is not None:
+                # analysis_data = loadJson(f'{path}\\analysis\{row["uuid"]}.json')
+                # x, neg, pos, diff = computeNormAvg(analysis_data, 128)
+                plot_signature(selected_movie["signature"][2],row["signature"][2])
 
             # Load the image from disk.
             image = Image.open(f'{path}\images\\{row["uuid"]}')

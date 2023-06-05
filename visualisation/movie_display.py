@@ -159,7 +159,7 @@ elif st.session_state.selected_uuid is not None:
         with tabs[2]:
             best_matches_id = get_best_matches_uuid(df["signature"].to_dict(), selected_movie["uuid"], n=4)
             df_best_matches = df[df["uuid"].isin(best_matches_id)]
-            display_cards(df_best_matches,path,N_cards_per_row=4)
+            display_cards(df_best_matches,path,N_cards_per_row=4,display_plot=True,selected_movie=selected_movie)
             pass
 
 
