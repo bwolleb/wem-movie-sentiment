@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 import json
 from PIL import Image
-from utils import loadJson,computeNormAvg, plot_plt
+from utils import loadJson,computeNormAvg, plot_plt, plot_st,plot_sns,get_best_matches_uuid,display_cards
 
 
 st.set_page_config(layout="wide")
@@ -31,6 +31,7 @@ with open(f'{path}\movies.json',encoding="utf8") as f:
 with open(f'{path}\\nlp.json',encoding="utf8") as f:
     data_nlp = json.load(f)
 
+
 df_nlp = pd.DataFrame(data_nlp).T
 df_data = pd.DataFrame(data)
 
@@ -42,6 +43,9 @@ df = df_data.join(df_nlp, how="inner")
 
 # add a column uuid from the index
 df['uuid'] = df.index
+
+# delete the rows where the signature is missing
+df = df[df['signature'].notna()]
 
 # Create a simple search engine
 text_search = st.text_input("Search films by title", value="")
@@ -62,27 +66,7 @@ if st.session_state.last_search != text_search:
 
 # Show the results, if you have a text_search
 if st.session_state.last_search and st.session_state.selected_uuid is None:
-    N_cards_per_row = 8
-
-    for n_row, row in df_search.reset_index().iterrows():
-        i = n_row % N_cards_per_row
-        if i == 0:
-            st.write("---")
-            cols = st.columns(N_cards_per_row, gap="large")
-        # draw the card
-        with cols[n_row % N_cards_per_row]:
-
-            # Load the image from disk.
-            image = Image.open(f'{path}\images\\{row["uuid"]}')
-            # display the image
-            st.image(image, use_column_width=True)
-
-            # titles and buttons
-            st.markdown(f"**{row['title']}**, {row['year']}")
-
-            if st.button(f"Select", key=row['uuid']):
-                st.session_state.selected_uuid = row["uuid"]
-                st.experimental_rerun()
+    display_cards(df_search,path,N_cards_per_row=8)
                 
 
 elif st.session_state.selected_uuid is not None:
@@ -103,7 +87,7 @@ elif st.session_state.selected_uuid is not None:
 
     with cols[2]:
 
-        tabs = st.tabs(["Informations", "Sentiment evolution"])
+        tabs = st.tabs(["Informations", "Sentiment evolution", "Dramatic signature matching"])
         # Information tab
         with tabs[0]:
             # display the film title and year
@@ -134,7 +118,7 @@ elif st.session_state.selected_uuid is not None:
         with tabs[1]:
             # display the plot showing the evolution of sentiment over time
             analysis_data = loadJson(f'{path}\\analysis\{selected_movie["uuid"]}.json')
-            x, neg, pos, diff = computeNormAvg(analysis_data, 64)
+            x, neg, pos, diff = computeNormAvg(analysis_data, 128)
             # display_pos = st.checkbox('positive',value=True)
             # display_neg = st.checkbox('negative',value=True)
             # display_diff = st.checkbox('delta',value=False)
@@ -168,7 +152,24 @@ elif st.session_state.selected_uuid is not None:
             else:
                 ddiff = None
 
-            plot_plt(x, dneg, dpos, ddiff)
+            # plot the sentiment evolution
+            plot_sns(x, dneg, dpos, ddiff)
+
+        # Dramatic signature matching tab
+        with tabs[2]:
+            best_matches_id = get_best_matches_uuid(df["signature"].to_dict(), selected_movie["uuid"], n=4)
+            df_best_matches = df[df["uuid"].isin(best_matches_id)]
+            display_cards(df_best_matches,path,N_cards_per_row=4)
+            pass
+
+
+
+
+
 if not st.session_state.last_search and st.session_state.selected_uuid is None:
     # for test purposes, display the entire dataframe
     st.write(df)
+    best_matches_id = get_best_matches_uuid(df["signature"].to_dict(), n=4)
+    df_best_matches = df[df["uuid"].isin(best_matches_id)]
+    df_best_matches
+    #st.write(df["signature"].to_dict())

@@ -5,7 +5,6 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 import pandas as pd
 import streamlit as st
-from PIL import Image
 
 def loadJson(path):
     f = open(path)
@@ -104,24 +103,3 @@ def get_best_matches_uuid(sign, ref="68a31a0cf30411edb451b8aeed79c0cc",n=4):
     best4CompIds = [i for i in sortedMseComp[:n+1] if i != refId][:n] # Item itself is probably first
     return [ids[i] for i in best4CompIds]
     
-def display_cards(df,path,N_cards_per_row = 8):
-
-    for n_row, row in df.reset_index().iterrows():
-        i = n_row % N_cards_per_row
-        if i == 0:
-            st.write("---")
-            cols = st.columns(N_cards_per_row, gap="large")
-        # draw the card
-        with cols[n_row % N_cards_per_row]:
-
-            # Load the image from disk.
-            image = Image.open(f'{path}\images\\{row["uuid"]}')
-            # display the image
-            st.image(image, use_column_width=True)
-
-            # titles and buttons
-            st.markdown(f"**{row['title']}**, {row['year']}")
-
-            if st.button(f"Select", key=row['uuid']):
-                st.session_state.selected_uuid = row["uuid"]
-                st.experimental_rerun()
