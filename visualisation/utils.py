@@ -9,7 +9,6 @@ import streamlit as st
 from PIL import Image
 from io import StringIO
 
-@st.cache_data
 def loadJson(path):
     f = open(path)
     data = json.load(f)

@@ -33,13 +33,10 @@ else:
     print("Please provide the path to the data folder as an argument")
     exit(1)
 
+@st.cache_resource
 def load_data():
     data = loadJson(os.path.join(path, "movies.json"))
     data_nlp = loadJson(os.path.join(path, "nlp.json"))
-    return data, data_nlp
-
-def prepare_data(data, data_nlp):
-
     df_nlp = pd.DataFrame(data_nlp).T
     df_data = pd.DataFrame(data)
 
@@ -60,8 +57,8 @@ def prepare_data(data, data_nlp):
     return df
 
 
-data, data_nlp = load_data()
-df = prepare_data(data, data_nlp)
+#data, data_nlp = load_data()
+df = load_data()
 
 # Create a simple search engine
 text_search = st.text_input("Search films by title", value="")
@@ -121,7 +118,8 @@ elif st.session_state.selected_uuid is not None:
             duration += str(int(lastSub / 60)) + "mn"
             st.markdown(f" ⏱️ **Duration** : {duration}")
             # display the actors
-            st.markdown(f" 🎭 **Actors** : {', '.join(selected_movie['actors'])}")
+            actors = str.join(", ", selected_movie['actors']) if selected_movie['actors'] is not np.nan else "-"
+            st.markdown(f" 🎭 **Actors** : {actors}")
 
             # Display the tags
             style = "background-color: lightblue; padding: 2px; margin: 2px; display: inline-block; border-radius: 10px;"
