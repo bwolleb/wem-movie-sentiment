@@ -89,6 +89,7 @@ elif st.session_state.selected_uuid is not None:
     
     # select line in the dataframe corresponding to the selected movie
     selected_movie = df[df["uuid"] == st.session_state.selected_uuid].to_dict(orient="records")[0]
+    analysis_data = loadJson(os.path.join(path, "analysis", selected_movie["uuid"] + ".json"))
     # dislay the title
     st.markdown(f"### Movie sentiment analysis : {selected_movie['title']}")
 
@@ -100,6 +101,9 @@ elif st.session_state.selected_uuid is not None:
         # display the image
         image = Image.open(os.path.join(path, "images", selected_movie["uuid"]))
         st.image(image, use_column_width=True)
+        style = "background-color: lightblue; padding: 2px; margin: 2px; display: inline-block; border-radius: 4px;"
+        tags_str = ''.join([f'<span style="{style}">{tag.strip()}</span>' for tag in selected_movie['tags']])
+        st.markdown(f"**Tags** : {tags_str}",unsafe_allow_html=True)
 
     with cols[2]:
 
@@ -107,9 +111,17 @@ elif st.session_state.selected_uuid is not None:
         # Information tab
         with tabs[0]:
             # display the film title and year
-            st.markdown(f"**Year** : {selected_movie['year']}")
+            st.markdown(f" 📅 **Year** : {selected_movie['year']}")
+            # display the duration from sub data (inexact but probably close)
+            lastSub = analysis_data[-1][0]
+            duration = "~"
+            if lastSub >= 3600:
+                duration += str(int(lastSub / 3600)) + "h "
+                lastSub %= 3600
+            duration += str(int(lastSub / 60)) + "mn"
+            st.markdown(f" ⏱️ **Duration** : {duration}")
             # display the actors
-            st.markdown(f"**Actors** : {', '.join(selected_movie['actors'])}")
+            st.markdown(f" 🎭 **Actors** : {', '.join(selected_movie['actors'])}")
 
             # Display the tags
             style = "background-color: lightblue; padding: 2px; margin: 2px; display: inline-block; border-radius: 10px;"
@@ -136,7 +148,6 @@ elif st.session_state.selected_uuid is not None:
         # Sentiment analysis tab
         with tabs[1]:
             # display the plot showing the evolution of sentiment over time
-            analysis_data = loadJson(os.path.join(path, "analysis", selected_movie["uuid"] + ".json"))
             x, neg, pos, diff = computeNormAvg(analysis_data, 128)
             # display_pos = st.checkbox('positive',value=True)
             # display_neg = st.checkbox('negative',value=True)

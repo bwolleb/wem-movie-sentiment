@@ -4,8 +4,10 @@ import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
 import pandas as pd
+import base64
 import streamlit as st
 from PIL import Image
+from io import StringIO
 
 @st.cache_data
 def loadJson(path):
@@ -16,6 +18,15 @@ def loadJson(path):
 
 def moving_average(x, width):
     return np.convolve(x, np.ones(width), 'valid') / width
+
+def renderFigSVG(fig):
+    imgdata = StringIO()
+    fig.savefig(imgdata, format="svg")
+    imgdata.seek(0)
+    svg = imgdata.getvalue()
+    b64 = base64.b64encode(svg.encode('utf-8')).decode("utf-8")
+    html = r'<img src="data:image/svg+xml;base64,%s"/>' % b64
+    st.write(html, unsafe_allow_html=True)
 
 def computeNormAvg(movie, avgWidth):
     neg = [entry[1] for entry in movie]
@@ -59,7 +70,7 @@ def plot_st(x, neg=None, pos=None, diff=None, poly=None):
 
 def plot_sns(x, neg=None, pos=None, diff=None, poly=None):
     sns.set_style("whitegrid")
-    fig, ax = plt.subplots(figsize=(12, 6), constrained_layout=True)
+    fig, ax = plt.subplots(figsize=(10, 5), constrained_layout=True)
 
     if neg is not None:
         sns.lineplot(x=x, y=neg, ax=ax, color="red", label="Negative Sentiment")
@@ -77,7 +88,8 @@ def plot_sns(x, neg=None, pos=None, diff=None, poly=None):
     ax.legend(loc='upper left', fontsize=14)
 
 
-    st.pyplot(fig)
+    #st.pyplot(fig)
+    renderFigSVG(fig)
 
 
 def plot_signature(signature_ref,signature):
@@ -91,14 +103,14 @@ def plot_signature(signature_ref,signature):
     sns.set_style("whitegrid")
     fig, ax = plt.subplots(figsize=(4, 2.5), constrained_layout=True)
 
-    sns.lineplot(x=x, y=comp_ref, ax=ax, color="red", label="Reference Signature")
-    sns.lineplot(x=x, y=comp_current, ax=ax, color="blue", label="Signature")
+    sns.lineplot(x=x, y=comp_ref, ax=ax, color="grey") #, label="Reference Signature")
+    sns.lineplot(x=x, y=comp_current, ax=ax, color="blue") #, label="Signature")
 
     ax.axhline(y=0, color="black", linestyle='--')
     ax.set_xlabel("Time (%)", fontsize=10)
     ax.set_ylabel("Sentiment", fontsize=10)
     ax.tick_params(axis='both', which='major', labelsize=10)
-    ax.legend(loc='upper left', fontsize=10)
+    #ax.legend(loc='upper left', fontsize=10)
 
     st.pyplot(fig)
 
@@ -154,7 +166,7 @@ def display_cards(df,path,N_cards_per_row = 8,display_plot=False,selected_movie=
             st.markdown(f"**{row['title']}**, {row['year']}")
 
             # Display the tags
-            style = "background-color: lightblue; padding: 2px; margin: 2px; display: inline-block; border-radius: 10px;"
+            style = "background-color: lightblue; padding: 2px; margin: 2px; display: inline-block; border-radius: 4px;"
             tags_str = ''.join([f'<span style="{style}">{tag.strip()}</span>' for tag in row['tags']])
             st.markdown(f"**Tags** : {tags_str}",unsafe_allow_html=True)
 
