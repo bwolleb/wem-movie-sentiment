@@ -166,23 +166,10 @@ elif st.session_state.selected_uuid is not None:
             #    display_neg = False
             #    display_diff = True
 
-
-
             # prepare the data to be sent to the plot function according to the checkboxes
-            if display_pos:
-                dpos = pos
-            else:
-                dpos = None
-
-            if display_neg:
-                dneg = neg
-            else:   
-                dneg = None
-
-            if display_diff:
-                ddiff = diff
-            else:
-                ddiff = None
+            dpos = pos if display_pos else None
+            dneg = neg if display_neg else None
+            ddiff = diff if display_diff else None
 
             # plot the sentiment evolution
             plot_sns(x, dneg, dpos, ddiff)
