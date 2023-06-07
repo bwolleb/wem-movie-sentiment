@@ -179,7 +179,7 @@ def matchSignature(data, refSignature, signIdx=2): # signIdx; 0=neg, 1=pos, 2=di
     sortedMseComp = mseComp.argsort()
     return list(npIds[sortedMseComp])
 
-def searchMovie(data, title="", actors="", yearRange=None, tags=[], signature=None, maxNb=50):
+def searchMovie(data, title="", actors="", yearRange=None, ttrRange=None, tags=[], signature=None, maxNb=50):
     titleFilter = pd.Series(len(data) * [True], index=data["uuid"]) # Null mask
     if title != "":
         titleFilter = data["title"].str.lower().str.normalize('NFKD').str.encode('ascii', errors='ignore').str.decode('utf-8').str.contains(title.lower())
@@ -187,6 +187,12 @@ def searchMovie(data, title="", actors="", yearRange=None, tags=[], signature=No
     dateFilter = pd.Series(len(data) * [True], index=data["uuid"]) # Null mask
     if yearRange is not None:
         dateFilter = data["year"].between(int(yearRange[0]), int(yearRange[1]))
+
+    ttrFilter = pd.Series(len(data) * [True], index=data["uuid"]) # Null mask
+    if ttrRange is not None:
+        low = int(ttrRange[0]) / 100
+        up = int(ttrRange[1]) / 100
+        ttrFilter = data["ttr"].between(low, up)
 
     actorFilter = pd.Series(len(data) * [True], index=data["uuid"]) # Null mask
     if actors != "":
@@ -199,7 +205,7 @@ def searchMovie(data, title="", actors="", yearRange=None, tags=[], signature=No
         npTags = np.array(tags)
         tagFilter = data["tags"].apply(lambda tags: np.intersect1d(tags, npTags).size == len(npTags))
 
-    result = data[titleFilter & dateFilter & actorFilter & tagFilter].head(maxNb)
+    result = data[titleFilter & dateFilter & ttrFilter & actorFilter & tagFilter].head(maxNb)
 
     if signature != None:
         sortedBySignature = matchSignature(result, signature)

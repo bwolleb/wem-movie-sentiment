@@ -59,7 +59,9 @@ with st.sidebar:
     title = st.text_input("Search films by title", placeholder="title")
     actors = st.text_input("Search films by actor", placeholder="actors")
     start, end = min(df["year"]), max(df["year"])
-    yearRange = st.select_slider("Range", options=[str(i) for i in range(start, end + 1)], value=(str(start), str(end)))
+    yearRange = st.select_slider("Year", options=[str(i) for i in range(start, end + 1)], value=(str(start), str(end)))
+    start, end = int(100 * min(df["ttr"])), int(100 * max(df["ttr"])) + 1
+    ttrRange = st.select_slider("TTR", options=[str(i) for i in range(start, end + 1)], value=(str(start), str(end)))
     tags = st.multiselect("Tags", tags)
     
     templates = [(k, signTemplates[k], i) for i, k in enumerate(signTemplates)]
@@ -76,13 +78,13 @@ with st.sidebar:
         st.session_state.last_search = None
         st.session_state.selected_uuid = None
 
-    searchTag = f"{title}{actors}{yearRange[0]}-{yearRange[1]}{str.join('', tags)}{sign[0]}"
+    searchTag = f"{title}/{actors}/{yearRange[0]}-{yearRange[1]}/{ttrRange[0]}-{ttrRange[1]}/{str.join('', tags)}/{sign[0]}"
 
 if st.session_state.last_search != searchTag:
     st.session_state.last_search = searchTag
     st.session_state.selected_uuid = None
-    df_search = searchMovie(df, title, actors, yearRange, tags, sign[1], 64)
-    display_cards(df_search,path,N_cards_per_row=8)
+    df_search = searchMovie(df, title, actors, yearRange, ttrRange, tags, sign[1], 64)
+    display_cards(df_search, path, N_cards_per_row=8)
 
 
 
