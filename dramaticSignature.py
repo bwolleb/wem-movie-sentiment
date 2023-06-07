@@ -43,7 +43,7 @@ def main():
 
 	warnings.simplefilter('ignore', np.RankWarning)
 	movies = loadJson(args.movies)
-	signatures = {}
+	signatures = loadJson(args.output) if os.path.isfile(args.output) else {}
 	i = 0
 	ign = []
 
@@ -62,7 +62,9 @@ def main():
 			fitPos.reverse()
 			fitDiff = list(np.polyfit(x, diff, args.poly))
 			fitDiff.reverse()
-			signatures[uuid] = (fitNeg, fitPos, fitDiff)
+			if uuid not in signatures:
+				signatures[uuid] = {}
+			signatures[uuid]["signature"] = (fitNeg, fitPos, fitDiff)
 		# Progress
 		i += 1
 		if args.verbose and i % 100 == 0:
