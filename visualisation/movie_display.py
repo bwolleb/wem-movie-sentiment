@@ -6,23 +6,21 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 import json
 from PIL import Image
-from utils import loadJson,computeNormAvg, plot_plt, plot_st,plot_sns,get_best_matches_uuid,display_cards
+from utils import *
 import sys
 import os
 
 st.set_page_config(layout="wide")
 
 
-if 'selected_uuid' not in st.session_state:
-    st.session_state['selected_uuid'] = None
+if 'selected_uuid' not in st.session_state: st.session_state['selected_uuid'] = None
+if 'last_search' not in st.session_state: st.session_state['last_search'] = None
+if 'last_selected' not in st.session_state: st.session_state['last_selected'] = None
 
-if 'last_search' not in st.session_state:
-    st.session_state['last_search'] = None
-
-st.write("""
-### F.U.C.K.C.E.D.R.I.C.
-Film Understanding, Classification, Knowledge, and Comprehensive Emotion Detection, Revealing Intricate Connections
-""")
+#st.write("""
+#### F.U.C.K.C.E.D.R.I.C.
+#Film Understanding, Classification, Knowledge, and Comprehensive Emotion Detection, Revealing Intricate Connections
+#""")
 
 # get first argument of the command line
 
@@ -56,35 +54,40 @@ def load_data():
 
     return df
 
-
-#data, data_nlp = load_data()
 df = load_data()
 
-# Create a simple search engine
-text_search = st.text_input("Search films by title", value="")
+with st.sidebar:
+    title = st.text_input("Search films by title", placeholder="title")
+    actors = st.text_input("Search films by actor", placeholder="actors")
+    start, end = min(df["year"]), max(df["year"])
+    yearRange = st.select_slider("Range", options=[str(i) for i in range(start, end + 1)], value=(str(start), str(end)))
+    tags = st.multiselect("Tags", tags)
+    
+    templates = [(k, signTemplates[k], i) for i, k in enumerate(signTemplates)]
+    sign = st.selectbox("Typical signature", templates, format_func=lambda item: item[0])
 
-# Filter the dataframe using masks // lowering // de-accent the vowels
-m1 = df["title"].str.lower().str.normalize('NFKD').str.encode('ascii', errors='ignore').str.decode('utf-8').str.contains(text_search.lower())
+    if sign[2] == 1 and st.session_state.last_selected is not None: # Current movie
+        movie = df[df["uuid"] == st.session_state.last_selected].to_dict(orient="records")[0]
+        sign = (sign[0], movie["signature"][2], sign[2])
 
-#m2 = df["year"].astype(str).str.contains(text_search)
-#df_search = df[m1 | m2]
+    if sign[1] is not None:
+        plot_sign(sign[1])
 
-df_search = df[m1]
+    if st.button("Apply"):
+        st.session_state.last_search = None
+        st.session_state.selected_uuid = None
 
+    searchTag = f"{title}{actors}{yearRange[0]}-{yearRange[1]}{str.join('', tags)}{sign[0]}"
 
-if st.session_state.last_search != text_search:
-    st.session_state.last_search = text_search
+if st.session_state.last_search != searchTag:
+    st.session_state.last_search = searchTag
     st.session_state.selected_uuid = None
-
-
-# Show the results, if you have a text_search
-if st.session_state.last_search and st.session_state.selected_uuid is None:
+    df_search = searchMovie(df, title, actors, yearRange, tags, sign[1], 64)
     display_cards(df_search,path,N_cards_per_row=8)
-                
+
+
 
 elif st.session_state.selected_uuid is not None:
-    
-    # select line in the dataframe corresponding to the selected movie
     selected_movie = df[df["uuid"] == st.session_state.selected_uuid].to_dict(orient="records")[0]
     analysis_data = loadJson(os.path.join(path, "analysis", selected_movie["uuid"] + ".json"))
     # dislay the title
@@ -109,6 +112,7 @@ elif st.session_state.selected_uuid is not None:
         with tabs[0]:
             # display the film title and year
             st.markdown(f" 📅 **Year** : {selected_movie['year']}")
+
             # display the duration from sub data (inexact but probably close)
             lastSub = analysis_data[-1][0]
             duration = "~"
@@ -117,23 +121,23 @@ elif st.session_state.selected_uuid is not None:
                 lastSub %= 3600
             duration += str(int(lastSub / 60)) + "mn"
             st.markdown(f" ⏱️ **Duration** : {duration}")
+
             # display the actors
-            actors = str.join(", ", selected_movie['actors']) if selected_movie['actors'] is not np.nan else "-"
+            actors = "-"
+            if selected_movie['actors'] is not np.nan:
+                cleaned = [a for a in selected_movie['actors'] if a.strip() != ""]
+                actors = str.join(", ", cleaned)
             st.markdown(f" 🎭 **Actors** : {actors}")
 
             # Display the tags
             style = "background-color: lightblue; padding: 2px; margin: 2px; display: inline-block; border-radius: 10px;"
             tags_str = ''.join([f'<span style="{style}">{tag.strip()}</span>' for tag in selected_movie['tags']])
 
-
-
             # Display the readability score
             st.markdown(f" 🤓 **Readability score** : {selected_movie['readability']}, **Flesh score** : {selected_movie['fre']}")
 
             # Display the Lexical variety score
             st.markdown(f" 📚 **Lexical variety score (TTR)** : {selected_movie['ttr']:.2f}")
-
-            
 
             # display the plot
             with st.expander("**Plot of the movie**"):
@@ -152,7 +156,7 @@ elif st.session_state.selected_uuid is not None:
             # display_diff = st.checkbox('delta',value=False)
 
             # radio button to select what to plot
-            plot_type = st.radio("", ["Positive & Negative", "Delta"],horizontal=True)
+            plot_type = st.radio("Show", ["Positive & Negative", "Delta"], horizontal=True, label_visibility="hidden")
             if plot_type == "Positive & Negative":
                 display_pos = True
                 display_neg = True
@@ -187,12 +191,10 @@ elif st.session_state.selected_uuid is not None:
         with tabs[2]:
             # give a control to choose the number of matches to display
             n_matches = st.slider("Number of matchs", min_value=1, max_value=12, value=4)
-            best_matches_id = get_best_matches_uuid(df["signature"].to_dict(), selected_movie["uuid"], n=n_matches)
-            df_best_matches = df[df["uuid"].isin(best_matches_id)]
-
-            display_cards(df_best_matches,path,N_cards_per_row=4,display_plot=True,selected_movie=selected_movie)
-            pass
-
+            sortedBySignature = matchSignature(df, selected_movie["signature"][2])
+            sortedBySignature.pop(sortedBySignature.index(selected_movie["uuid"]))
+            matches = df.reindex(sortedBySignature[:n_matches])
+            display_cards(matches, path, N_cards_per_row=4, display_plot=True, selected_movie=selected_movie)
 
 
 

@@ -9,11 +9,30 @@ import streamlit as st
 from PIL import Image
 from io import StringIO
 
+tags = ["action", "addiction", "adolescence", "adoption", "adultery", "adventure", "alcohol", "alien", "amnesia", "animal", "animation", "anti hero", "apocalypse", "art", "artificial intelligence", "assassin", "bank", "betrayal", "biography", "business", "car", "casino", "celebrity", "chase", "children", "cinema", "comedy", "coming of age", "computer", "conspiracy", "crime", "cyberpunk", "dance", "dance", "dark comedy", "detective", "disaster", "documentary", "dog", "drama", "drug", "dystopia", "environment", "epic", "espionage", "family", "family drama", "fantasy", "fear", "film noir", "friendship", "future", "gambling", "gangster", "ghost", "gore", "heist", "high school", "historical", "horror", "human rights", "journey", "lgbt", "love", "martial arts", "magic", "mafia", "mental illness", "murder", "music", "musical", "mystery", "nature", "neo-noir", "paranormal", "period drama", "political satire", "politics", "post-apocalyptic", "psychological thriller", "racism", "religion", "romance", "romantic comedy", "satire", "sci-fi", "space", "sports", "spy", "superhero", "supernatural", "survival", "suspense", "terrorism", "thriller", "travel", "vampire", "war", "western", "zombie"]
+
 def loadJson(path):
     f = open(path)
     data = json.load(f)
     f.close()
     return data
+
+def eval0to100(res, poly):
+    xs = [i / res * 100 for i in range(res + 1)]
+    ys = [sum([val**i * poly[i] for i in range(len(poly))]) for val in xs]
+    return xs, ys
+
+def xy2pt(xs, ys):
+    return [(xs[i], ys[i]) for i in range(len(xs))] 
+
+signTemplates = {}
+signTemplates["None"] = None
+signTemplates["Selected movie"] = None
+signTemplates["Globally positive"] = [-1, 0.02]
+signTemplates["Globally negative"] = [1, -0.02]
+signTemplates["Bad middle"] = [1, -0.08, 0.0008]
+signTemplates["Good middle"] = [-1, 0.08, -0.0008]
+signTemplates["Hope then despair"] = [0, 0.09, -0.0022, 1.23e-5]
 
 def moving_average(x, width):
     return np.convolve(x, np.ones(width), 'valid') / width
@@ -86,60 +105,32 @@ def plot_sns(x, neg=None, pos=None, diff=None, poly=None):
     ax.tick_params(axis='both', which='major', labelsize=14)
     ax.legend(loc='upper left', fontsize=14)
 
-
     #st.pyplot(fig)
     renderFigSVG(fig)
 
 
-def plot_signature(signature_ref,signature):
-
-    res = 100
-    x = [i / res * 100 for i in range(res + 1)]
-    comp_ref = func(x, signature_ref)
-    comp_current = func(x, signature)
-
-
+def plot_sign(*signatures, colors=["grey", "blue", "red", "green", "orange", "purple"]):
     sns.set_style("whitegrid")
     fig, ax = plt.subplots(figsize=(4, 2.5), constrained_layout=True)
 
-    sns.lineplot(x=x, y=comp_ref, ax=ax, color="grey") #, label="Reference Signature")
-    sns.lineplot(x=x, y=comp_current, ax=ax, color="blue") #, label="Signature")
+    for i in range(len(signatures)):
+        xs, ys = eval0to100(101, signatures[i])
+        sns.lineplot(x=xs, y=ys, ax=ax, color=colors[i])
 
     ax.axhline(y=0, color="black", linestyle='--')
     ax.set_xlabel("Time (%)", fontsize=10)
     ax.set_ylabel("Sentiment", fontsize=10)
     ax.tick_params(axis='both', which='major', labelsize=10)
-    #ax.legend(loc='upper left', fontsize=10)
 
     st.pyplot(fig)
 
 def func(x, poly):
     return [sum([val**i * poly[i] for i in range(len(poly))]) for val in x]
 
-def get_best_matches_uuid(sign, ref="68a31a0cf30411edb451b8aeed79c0cc",n=4):
+def selectMovie(uuid):
+    st.session_state.selected_uuid = uuid
+    st.session_state.last_selected = uuid
 
-    ids = []
-    signatures = []
-    for uuid in sign:
-        ids.append(uuid)
-        signatures.append(sign[uuid][2])
-    npSign = np.array(signatures)
-
-    comp = []
-    res = 100
-    for poly in signatures:
-        x = [i / res * 100 for i in range(res + 1)]
-        comp.append(func(x, poly))
-    npComp = np.array(comp)
-
-
-    refId = ids.index(ref)
-    refDiffComp = np.array(comp[refId])
-    mseComp = ((npComp - refDiffComp)**2).mean(axis=1)
-    sortedMseComp = mseComp.argsort()
-    best4CompIds = [i for i in sortedMseComp[:n+1] if i != refId]
-    return [ids[i] for i in best4CompIds]
-    
 def display_cards(df,path,N_cards_per_row = 8,display_plot=False,selected_movie=None):
 
     for n_row, row in df.reset_index().iterrows():
@@ -154,7 +145,7 @@ def display_cards(df,path,N_cards_per_row = 8,display_plot=False,selected_movie=
             if display_plot and selected_movie is not None:
                 # analysis_data = loadJson(f'{path}\\analysis\{row["uuid"]}.json')
                 # x, neg, pos, diff = computeNormAvg(analysis_data, 128)
-                plot_signature(selected_movie["signature"][2],row["signature"][2])
+                plot_sign(selected_movie["signature"][2],row["signature"][2])
 
             # Load the image from disk.
             image = Image.open(os.path.join(path, "images", row["uuid"]))
@@ -169,7 +160,49 @@ def display_cards(df,path,N_cards_per_row = 8,display_plot=False,selected_movie=
             tags_str = ''.join([f'<span style="{style}">{tag.strip()}</span>' for tag in row['tags']])
             st.markdown(f"**Tags** : {tags_str}",unsafe_allow_html=True)
 
-            if st.button(f"Select", key=row['uuid']):
-                st.session_state.selected_uuid = row["uuid"]
-                st.experimental_rerun()
-    return
+            st.button("Select", key=row['uuid'], on_click=selectMovie, args=[row['uuid']])
+
+
+def matchSignature(data, refSignature, signIdx=2): # signIdx; 0=neg, 1=pos, 2=diff
+    ids = []
+    signatures = []
+    for uuid, row in data.iterrows():
+        ids.append(uuid)
+        xs, ys = eval0to100(101, row["signature"][signIdx])
+        signatures.append(ys)
+    npIds = np.array(ids)
+    npSign = np.array(signatures)
+
+    xs, ys = eval0to100(101, refSignature)
+    npRef = np.array(ys)
+    mseComp = ((npSign - npRef)**2).mean(axis=1)
+    sortedMseComp = mseComp.argsort()
+    return list(npIds[sortedMseComp])
+
+def searchMovie(data, title="", actors="", yearRange=None, tags=[], signature=None, maxNb=50):
+    titleFilter = pd.Series(len(data) * [True], index=data["uuid"]) # Null mask
+    if title != "":
+        titleFilter = data["title"].str.lower().str.normalize('NFKD').str.encode('ascii', errors='ignore').str.decode('utf-8').str.contains(title.lower())
+
+    dateFilter = pd.Series(len(data) * [True], index=data["uuid"]) # Null mask
+    if yearRange is not None:
+        dateFilter = data["year"].between(int(yearRange[0]), int(yearRange[1]))
+
+    actorFilter = pd.Series(len(data) * [True], index=data["uuid"]) # Null mask
+    if actors != "":
+        actorList = actors.split(",")
+        actorList = [a.strip() for a in actorList]
+        actorFilter = data["actors"].apply(lambda actors: (sum([a.lower() in str.join(" ", actors).lower() for a in actorList]) == len(actorList)) if actors is not np.nan else False)
+
+    tagFilter = pd.Series(len(data) * [True], index=data["uuid"]) # Null mask
+    if len(tags) > 0:
+        npTags = np.array(tags)
+        tagFilter = data["tags"].apply(lambda tags: np.intersect1d(tags, npTags).size == len(npTags))
+
+    result = data[titleFilter & dateFilter & actorFilter & tagFilter].head(maxNb)
+
+    if signature != None:
+        sortedBySignature = matchSignature(result, signature)
+        result = result.reindex(sortedBySignature)
+
+    return result
