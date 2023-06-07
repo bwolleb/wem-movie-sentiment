@@ -73,7 +73,7 @@ with st.sidebar:
     if sign[1] is not None:
         plot_sign(sign[1])
 
-    if st.button("Apply"):
+    if st.button("Apply", use_container_width=True):
         st.session_state.last_search = None
         st.session_state.selected_uuid = None
 
