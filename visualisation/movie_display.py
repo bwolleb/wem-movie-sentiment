@@ -23,7 +23,6 @@ if 'last_selected' not in st.session_state: st.session_state['last_selected'] = 
 #""")
 
 # get first argument of the command line
-
 if len(sys.argv) > 1:
     path = sys.argv[1]
     path = path.replace("[", "").replace("]", "")
@@ -151,20 +150,21 @@ elif st.session_state.selected_uuid is not None:
         with tabs[1]:
             # display the plot showing the evolution of sentiment over time
             x, neg, pos, diff = computeNormAvg(analysis_data, 128)
-            # display_pos = st.checkbox('positive',value=True)
-            # display_neg = st.checkbox('negative',value=True)
-            # display_diff = st.checkbox('delta',value=False)
+            checks = st.columns(3)
+            with checks[0]: display_pos = st.checkbox('positive',value=True)
+            with checks[1]: display_neg = st.checkbox('negative',value=True)
+            with checks[2]: display_diff = st.checkbox('delta',value=False)
 
             # radio button to select what to plot
-            plot_type = st.radio("Show", ["Positive & Negative", "Delta"], horizontal=True, label_visibility="hidden")
-            if plot_type == "Positive & Negative":
-                display_pos = True
-                display_neg = True
-                display_diff = False
-            elif plot_type == "Delta":
-                display_pos = False
-                display_neg = False
-                display_diff = True
+            #plot_type = st.radio("Show", ["Positive & Negative", "Delta"], horizontal=True, label_visibility="hidden")
+            #if plot_type == "Positive & Negative":
+            #    display_pos = True
+            #    display_neg = True
+            #    display_diff = False
+            #elif plot_type == "Delta":
+            #    display_pos = False
+            #    display_neg = False
+            #    display_diff = True
 
 
 
