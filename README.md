@@ -17,7 +17,7 @@ L'objectif principal de ce projet est d'analyser les sentiments présents tout a
 
 1. Récupérer les métadonnées des films à partir d'un dump de Wikipédia, incluant des informations telles que le titre, l'année de sortie, le réalisateur, les acteurs, le genre et la durée.
 
-2. Scraper les sous-titres des films sur le site https://forum.opensubtitles.org/, en veillant à sélectionner les sous-titres anglais correspondant aux films analysés.
+2. Scraper les sous-titres des films sur le site https://www.opensubtitles.org, en veillant à sélectionner les sous-titres anglais correspondant aux films analysés.
 
 3. Effectuer une analyse de sentiment sur les dialogues extraits des sous-titres pour détecter les émotions présentes tout au long des films.
 
@@ -39,7 +39,7 @@ Nous avons collecté un large échantillon de métadonnées de films à partir d
 
 ## Sous-titres issus d'OpenSubtitles
 
-Les sous-titres des films ont été récupérés sur le site https://forum.opensubtitles.org/. Cette source nous a permis d'accéder à une grande quantité de sous-titres en anglais, en lien avec les films listés dans notre échantillon issu du dump de Wikipédia. Nous avons utilisé des techniques de web scraping pour récupérer les fichiers de sous-titres et les organiser par film. Les sous-titres sont ensuite convertis en fichiers JSON pour faciliter leur utilisation dans nos analyses.
+Les sous-titres des films ont été récupérés sur le site https://www.opensubtitles.org/fr. Cette source nous a permis d'accéder à une grande quantité de sous-titres en anglais, en lien avec les films listés dans notre échantillon issu du dump de Wikipédia. Nous avons utilisé des techniques de web scraping pour récupérer les fichiers de sous-titres et les organiser par film. Les sous-titres sont ensuite convertis en fichiers JSON pour faciliter leur utilisation dans nos analyses.
 
 ## Tags prédéfinis
 
@@ -83,8 +83,6 @@ Ces modèles basés sur les Transformers ont montré des résultats prometteurs 
 
 En utilisant ces modèles état de l'art dans notre projet, nous espérons améliorer notre compréhension des émotions et des thèmes présents dans les films grâce à l'analyse de leurs dialogues. Grâce à la combinaison d'une analyse de sentiment basée sur RoBERTa et d'une extraction de thèmes basée sur BART, nous visons à fournir une caractérisation détaillée et nuancée des films, permettant ainsi leur classification thématique et émotionnelle.
 
-
-
 # Architecture
 Dans cette section, nous aborderons l'architecture générale de notre projet de web mining. Nous avons conçu une architecture basée sur un ensemble de différents scripts Python et modèles (NLP) qui permettent de récupérer, prétraiter et analyser les données. De plus, une interface utilisateur web a été développée pour présenter les résultats et faciliter leur exploration.
 
@@ -98,7 +96,7 @@ En résumé, notre architecture prend en compte les aspects suivants:
 - Analyse des données en utilisant des techniques de NLP pour l'analyse de sentiments, la classification thématique et l'extraction de caractéristiques linguistiques
 - Présentation des résultats à travers une interface utilisateur web interactive
 
-![match_curve](images/architecture.jpg)
+![architecture](images/architecture.jpg)
 
 Dans la suite de ce chapitre, nous décrirons en détail chaque composant et étape de notre pipeline d'architecture. Cela inclut la description des modules et techniques utilisés dans la récupération et l'analyse des données, ainsi que les résultats obtenus et les implications pour notre projet.
 
@@ -310,9 +308,11 @@ Malgré nos efforts pour collecter et analyser les données de manière aussi pr
 
 L'une des limites de notre projet est la difficulté à analyser correctement les films qui contiennent peu de dialogues. En effet, puisque notre approche repose principalement sur l'analyse des sous-titres et des dialogues de chaque film, il se peut que certains films soient moins bien représentés par notre modèle que d'autres.
 
-Cela peut inclure des films qui utilisent principalement des éléments visuels pour transmettre leur histoire, ainsi que ceux qui ont un style plus minimaliste dans leur narration.
+Cela peut inclure des films qui utilisent principalement des éléments visuels pour transmettre leur histoire, ainsi que ceux qui ont un style plus minimaliste dans leur narration. Un bon exemple de ceci est le film expérimental "Amer" sorti en 2009 qui comporte en tout et pour tout 40 répliques sur 1h30 de film.
 
-Dans ces cas, notre modèle pourrait ne pas être en mesure de capturer l'essence des films et de leur apporter la pertinence qu'ils méritent. Cependant, étant donné la nature basée sur le texte des techniques d'analyse du langage naturel (NLP) que nous utilisons, il est difficile de proposer une solution alternative pour traiter ces films sans pour autant s'appuyer sur d'autres types de données, telles que l'analyse d'images ou de séquences vidéo.
+![amer](images/amer.jpg)
+
+Dans ces cas, notre modèle pourrait ne pas être en mesure de capturer l'essence des films et de leur apporter la pertinence qu'ils méritent. Cependant, étant donné la nature basée sur le texte des techniques d'analyse du langage naturel (NLP) que nous utilisons, il est difficile de proposer une solution alternative pour traiter ces films sans pour autant s'appuyer sur d'autres types de données, telles que l'analyse d'images ou de séquences vidéo, ce qui est largement en dehors du contexte de ce projet.
 
 ### Erreurs dans les fichiers lors de la collecte
 
