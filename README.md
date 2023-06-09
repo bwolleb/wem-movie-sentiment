@@ -98,6 +98,43 @@ De tous ces segments, seulement deux se déroulent dans le futur et pourtant le 
 
 En effectuant une extraction des thèmes directement depuis les dialogues du film, nous espérons obtenir un résultat plus précis, ou du moins plus pertinent des véritables thématiques abordées par le scénario et les personnages.
 
+Le modèle que nous utilisons pour cette tâche est [bart-large-mnli](https://huggingface.co/facebook/bart-large-mnli) entraîné par Facebook et qui permet d'effectuer une "Zero Shot Text Classification". Concrètement, le modèle prend un texte à évaluer et une liste de tags en entrée, et fournit les probabilités associées pour chacun de ces tags en sortie.
+
+Nous avons donc établi une liste de 100 tags à associer aux films qui vont de valeurs très génériques comme "action", "adventure", "thriller" à des valeurs un peu plus spécifiques comme "coming of age", "journey" ou "dark comedy".
+
+Pour cette analyse, nous ne procédons plus ligne par ligne, mais en concaténant les dialogues du film entier en une seul chaîne qui est transmise au modèle, car la pipeline fournie par HuggingFace supporte les longues chaînes en entrée.
+
+Enfin, à partie de la sortie du modèle, nous associons les tags ayant les plus grandes probabilités, tout d'abord en prenant les 3 plus grandes (afin de systématiquement avoir 3 valeurs pour chaque film, même si les probabilités sont faibles) puis en sélectionnant les éventuelles suivantes si elles dépassent un certain seuil. Sur les 9170 films de notre sélection, nous obtenons ainsi la distribution suivante:
+
+![tags_per_movie](images/tags_per_movie.png)
+
+En examinant la distribution par tag pour les 25% les plus fréquents, celle-ci est, comme on pouvait s'y attendre, assez inégale:
+
+![tags_dist](images/tags_dist.png)
+
+Sans surprise, ce sont les tags les plus génériques qui sont les plus fréquemments associés, alors que les tags plus spécifiques le sont beaucoup plus rarement (75 valeurs très petites ne sont pas affichées).
+
+Maintenant, en examinant la pertinence de ceux-ci, nous nous sommes aperçus que, contrairement à ce que nous espérions, la détection des ces tags n'est fréquemment pas très juste. Pour reprendre notre cas d'étude ainsi que l'exemple ci-dessus, nous obtenons les données suivantes:
+
+- Interstellar: business, action, journey
+- Cloud Atlas: future, journey, computer
+
+S'agissant d'Interstellar, le tag "journey", et dans une moindre mesure le tag "action", sont plutôt pertinents. Cependant, ous somme surpris d'y retrouver le tag "business" qui semble assez hors contexte. Connaissant le film et son sujet, nous aurions préféré retrouver les tags "sci-fi", "space", "drama", "family" et éventuellement "post-apocalyptic" et "love" alors que ceux-ci n'ont pas été jugés pertinents par le modèle, les classant respectivement en positions 68, 22, 21, 33, 49 et 84 (et avec des scores très bas).
+
+Pour le second cas, les tags obtenus sont plutôt cohérents. S'agissant comme expliqué d'un film racontant plusieurs segments très éloignés les uns des autres, sans thème central apparent, le tag "journey" semble un bon indicateur, et les tags "future" et "computer" ont probablement été détectés sur les segments les plus futuristes, lesquels utilisent peut-être un vocabulaire plus "typé" et reconnaissable que les autres.
+
+Enfin, pour plusieurs de films, les tags sont parfois extrêmements contre-intuitifs, en particulier pour les films d'horreur qui semblent être particulièrement mal catégorisés. Par exemple, le film Saw est catégorisé en "future", "action" et "journey".
+
+Notre hypothèse pour expliquer ceci est probablement que le modèle ne reconnaît pas aussi facilement certains thèmes, potentiellement plus rares et associés à moins de "mots clés" ou "mots déclencheurs" que certains autres un peu plus génériques, ce qui est typiquement visible dans le graphique ci-dessus.
+
+Par exemple, il y a probablement beaucoup de mots ou de phrases qui sont habituellement corrélées à de l'action, et relativement peu au genre du film noir, qui est une catégorisation plutôt visuelle que narrative. Le thèmes sous-jacents au texte fourni au modèle sont probablement aussi très "dilués", car beaucoup de lignes de dialogue sont probablement peu eplicatives et pauvres de sens, une caractéristique typique du langage parlé. 
+
+Il faudrait donc que le modèle ait une très grande sensibilité associées à chaque tag pour pouvoir correctement les détecter, ce qui n'est clairement pas le cas des modèles de type "Zero Shot Classification" et nécessiterait un peu de *fine-tuning*.
+
+Pour pallier à ce problème, une idée d'amélioration serait par exemple de faire l'analyse en plusieurs passes: la première en ne fournissant qu'une dizaine de tags très génériques, permettant de catégoriser grossièrement le type de film, et une seconde phase en fournissant un sous-ensemble de tags associés à la catégorie plus générique détectée à la première phase. Par exemple la catégorie large "suspense" pourrait être associée à des sous-catégies comme "conspiracy", "crime", "detective", "murder", "spy" etc.
+
+Il serait aussi possible de "nettoyer" un peu plus le texte fourni au modèle, par exemple en supprimant complètement les mots ou même des phrases entières jugées comme pauvres en sens.
+
 ## Limites
 Films avec peu de dialogue
 Erreurs dans les fichiers lors de la collecte
