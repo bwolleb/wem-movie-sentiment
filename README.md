@@ -270,10 +270,6 @@ Par exemple, il y a probablement beaucoup de mots ou de phrases qui sont habitue
 
 Il faudrait donc que le modèle ait une très grande sensibilité associées à chaque tag pour pouvoir correctement les détecter, ce qui n'est clairement pas le cas des modèles de type "Zero Shot Classification" et nécessiterait un peu de *fine-tuning*.
 
-Pour pallier à ce problème, une idée d'amélioration serait par exemple de faire l'analyse en plusieurs passes: la première en ne fournissant qu'une dizaine de tags très génériques, permettant de catégoriser grossièrement le type de film, et une seconde phase en fournissant un sous-ensemble de tags associés à la catégorie plus générique détectée à la première phase. Par exemple la catégorie large "suspense" pourrait être associée à des sous-catégories comme "conspiracy", "crime", "detective", "murder", "spy" etc.
-
-Il serait aussi possible de "nettoyer" un peu plus le texte fourni au modèle, par exemple en supprimant complètement les mots ou même des phrases entières jugées comme pauvres en sens.
-
 ## Calcul des caractéristiques linguistiques
 Cette partie est purement statistique et n'utilise pas d'intelligence artificielle. À partir des dialogues du film, nous extrayons quelques informations linguistiques qui permettent par exemple d'établir la complexité d'un texte ou encore sa facilité de lecture.
 
@@ -300,7 +296,7 @@ Enfin, dans la planification initiale nous n'avions pas prévu de temps pour le 
 
 ![planning_final](images/planning_final.jpg)
 
-## Limites
+## Limites et améliorations
 
 Malgré nos efforts pour collecter et analyser les données de manière aussi précise et fiable que possible, notre projet rencontre certaines limites. Dans cette section, nous aborderons deux de ces limites : les films avec peu de dialogue et les erreurs dans les fichiers lors de la collecte.
 
@@ -321,3 +317,21 @@ Une autre limite rencontrée lors de notre projet est liée aux erreurs dans les
 Nous avons pris diverses mesures pour nettoyer et prétraiter ces données, notamment en corrigeant les erreurs, en interpolant les données manquantes et en normalisant les formats. Cependant, il est possible que certaines erreurs subsistent, ce qui pourrait affecter la qualité de nos analyses et de nos résultats. Par exemple, des erreurs dans les métadonnées pourraient fausser notre compréhension du genre ou de la distribution d'un film, tandis que des erreurs dans les fichiers de sous-titres pourraient entraîner une mauvaise interprétation des dialogues.
 
 Dans l'ensemble, ces limites représentent des défis auxquels nous avons dû faire face tout au long du projet et qui pourraient affecter la qualité et la pertinence de nos résultats. Néanmoins, malgré ces défis, notre base de données et nos analyses constituent une ressource suffisante pour explorer le potentiel des techniques de NLP et de web scraping dans l'analyse des films à partir de leurs dialogues et métadonnées.
+
+### Améliorations
+
+Si nous devions continuer ce projet plus longuement, les améliorations suivantes pourraient être implémentées et apporter de nouvelles données à la solution actuelle:
+
+- Améliorer la collecte des métadonnées et des images: La version actuelle du parser Wikipédia ne récolte que peu d'informations, principalement celles présentes dans le cartouche en tête de page. Cependant, d'autres informations intéressantes sont présentes pour beaucoup de films, typiquement dans la fiche technique, comme par exemple le budget ou encore le box office réalisé par le film lors de sa sortie. Ces informations pourraient être utilisées pour catégoriser la taille de la production: blockbuster, film d'auteur, film amateur, etc. D'autre part, si certains champs sont manquants, par exemple la date de sortie, le parser actuel abandonne et saute le film, ce qui nous garantit un minimum d'informations récoltées. Cependant, il serait possible d'utiliser d'autres ressources en ligne pour compléter ces données lorsqu'elles manquent.
+
+- Utiliser d'autres ressources en ligne: la version actuelle n'utilise que le dump Wikipédia pour récolter les métadonnées et les images des films, ce qui nous prive d'autres types de données comme par exemple les évaluations par la presse et le public. Effectuer du scraping sur des sites comme IMDB ou encore RottenTomatoes pourraient apporter de nouvelles informations. Pour aller encore plus loin, nous pourrions imaginer récolter les commentaires laissés par les utilisateurs, lesquels pourraient aussi être traités avec de l'analyse de sentiments pour en extraire la satisfaction globale ou les griefs majeurs.
+
+- Renforcer l'analyse: l'analyse de sentiments ainsi que l'extraction de tags pourraient être rendues plus robustes, par exemple en utilisant plusieurs modèles et en croisant les résultats obtenus. Cela permettrait d'augmenter la pertinence des résultats, typiquement si les sorties des différents modèles concordent.
+
+- Améliorer le pré-traitement des données pour l'extraction des thèmes: pour pallier au problème de détection des tags, une idée d'amélioration serait par exemple de faire l'analyse en plusieurs passes: la première en ne fournissant qu'une dizaine de tags très génériques, permettant de catégoriser grossièrement le type de film, et une seconde phase en fournissant un sous-ensemble de tags associés à la catégorie plus générique détectée à la première phase. Par exemple la catégorie large "suspense" pourrait être associée à des sous-catégories comme "conspiracy", "crime", "detective", "murder", "spy" etc. Il serait aussi possible de "nettoyer" un peu plus le texte fourni au modèle, par exemple en supprimant complètement les mots ou même des phrases entières jugées comme pauvres en sens.
+
+- Extraire d'autres informations: au moyen du texte au cours du film, nous pourrions détecter encore plus de marqueurs, comme par exemple à quel point un film est vulgaire ou détecter le contexte dans lequel se déroule les événements (géographique, sociaux, temporels, ...). On peut même imaginer reprendre l'idée des tags et analyser à quel moment du film les dialogues les font ressortir.
+
+- Soyons fous: dans un monde idéal, nous disposerions aussi du fichier vidéo associé à chaque film, ce qui nous permettrait d'utiliser la piste sonore, ainsi quela piste vidéo pour renforcer notre analyse. Par exemple, même si une ligne de dialogue semble banale en n'examinant que le fichier de sous-titres, les informations apportées par le son (intensité, fréquences, autres informations apportées après traitement du signal comme les MFCCs) pourraient améliorer la détection de l'émotion exprimée lors d'une scène. C'est par exemple ainsi que procède certaines plateformes de vidéo pour détecter les changements d'intensité dans les vidéos, par exemple ici sur youtube:
+
+![sa_youtube](images/sa_youtube.jpg)
