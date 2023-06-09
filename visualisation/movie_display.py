@@ -19,11 +19,6 @@ if 'last_selected' not in st.session_state: st.session_state['last_selected'] = 
 if 'match_cache_uuid' not in st.session_state: st.session_state['match_cache_uuid'] = None
 if 'match_cache' not in st.session_state: st.session_state['match_cache'] = []
 
-#st.write("""
-#### F.U.C.K.C.E.D.R.I.C.
-#Film Understanding, Classification, Knowledge, and Comprehensive Emotion Detection, Revealing Intricate Connections
-#""")
-
 # get first argument of the command line
 if len(sys.argv) > 1:
     path = sys.argv[1]
