@@ -306,7 +306,7 @@ Enfin, dans la planification initiale nous n'avions pas prévu de temps pour le 
 
 Malgré nos efforts pour collecter et analyser les données de manière aussi précise et fiable que possible, notre projet rencontre certaines limites. Dans cette section, nous aborderons deux de ces limites : les films avec peu de dialogue et les erreurs dans les fichiers lors de la collecte.
 
-## Films avec peu de dialogue
+### Films avec peu de dialogue
 
 L'une des limites de notre projet est la difficulté à analyser correctement les films qui contiennent peu de dialogues. En effet, puisque notre approche repose principalement sur l'analyse des sous-titres et des dialogues de chaque film, il se peut que certains films soient moins bien représentés par notre modèle que d'autres.
 
@@ -314,7 +314,7 @@ Cela peut inclure des films qui utilisent principalement des éléments visuels 
 
 Dans ces cas, notre modèle pourrait ne pas être en mesure de capturer l'essence des films et de leur apporter la pertinence qu'ils méritent. Cependant, étant donné la nature basée sur le texte des techniques d'analyse du langage naturel (NLP) que nous utilisons, il est difficile de proposer une solution alternative pour traiter ces films sans pour autant s'appuyer sur d'autres types de données, telles que l'analyse d'images ou de séquences vidéo.
 
-## Erreurs dans les fichiers lors de la collecte
+### Erreurs dans les fichiers lors de la collecte
 
 Une autre limite rencontrée lors de notre projet est liée aux erreurs dans les fichiers collectés, que ce soit dans les métadonnées extraites du dump de Wikipédia ou dans les fichiers de sous-titres récupérés sur OpenSubtitles. Ces erreurs peuvent inclure des incohérences, des données manquantes ou des erreurs de formatage.
 
