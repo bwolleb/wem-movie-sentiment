@@ -302,7 +302,7 @@ Enfin, dans la planification initiale nous n'avions pas prévu de temps pour le 
 
 ![planning_final](images/planning_final.jpg)
 
-# Limites
+## Limites
 
 Malgré nos efforts pour collecter et analyser les données de manière aussi précise et fiable que possible, notre projet rencontre certaines limites. Dans cette section, nous aborderons deux de ces limites : les films avec peu de dialogue et les erreurs dans les fichiers lors de la collecte.
 
