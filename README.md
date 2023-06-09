@@ -3,6 +3,50 @@
 - Massimo De Santis
 - Benoist Wolleb
 
+# Architecture
+
+## Pipeline
+Afin de récupérer et exploiter les données, la pipeline des opérations est grossièrement distincte en deux étapes:
+
+- Récupération des données: parsing du dump Wikipedia, récupération des images de couvertures depuis Wikimedia et récupération des sous-titres depuis OpenSubtitles.
+- Transformation des données et analyse: transformation des sous-titres depuis leur format de base SRT en une structure plus facilement utilisable (structurée et indépendante de l'encodage des caractères) et exploitation du texte obtenu pour analyse de sentiments, extaction des thèmes et statistiques NLP.
+
+Tous les scripts qui effectuent ces étapes sont présents dans l'ordre de leur utilisation dans le dossier [analysis](analysis). Le point de départ est le fichier de dump complet de Wikipedia anglophone en format XML qui peut être librement téléchargé depuis [Wikimedia Downloads](https://dumps.wikimedia.org/backup-index.html). Le fichier approprié se trouve dans la section `enwiki` et est normalement nommé `enwiki-YYYYMMDD-pages-articles-multistream.xml.bz2` et pèse environ 20 Gio compressé, et environ 88 Gio décompressé.
+
+### Récupération des données
+
+- `01_parser.py`: parcours le dump Wikipedia (décompressé) à la recherche de toutes les entrées qui correspondent à un film. Pour chacun, les métadonnées sont extraites: titre, année de sortie, distribution, résumé et nom de l'image de couverture. Un identifiant unique (UUID) est généré pour chaque film et servira de clé pour l'identifier dans tout le reste du projet. Ce script prend en paramètre le chemin du dump ainsi que le chemin vers le fichier json résultant contenant toutes les entrées qui sera créé à la fin de l'exécution, par exemple `allmovies.json`. Ce dernier est une simple liste d'objets (`dict`) contenant les données pour chaque film.
+
+- `02_getImages.py`: tente de télécharger les images de couverture pour chaque film. En effet, dans les sources d'un article Wikipedia, l'image de couverture ne consiste pas en un URL vers le fichier, mais uniquement le nom de la ressource Wikimedia. Il faut donc reconstruire le lien vers la véritable image à partir du nom (avec une logique un peu particulière utilisant le hash md5 du nom). Chaque image téléchargée est simplement nommée de la même manière que l'UUID du film correspondant, sans extension. Le script prend en paramètres la collection de films extraite au script précédent `allmovies.json` et un chemin vers un dossier dans lequel stocker toutes les images qui devrait être nommé `images` (car directement utilisé par l'interface avec ce nom). Ce script supporte plusieurs exécution, en reprenant dans l'ordre de la liste des films ne possédant pas d'image (il ne va pas re-télécharger les images déjà existantes).
+
+- `03_removeVideos.py`: nettoie le dossier des images téléchargées avec le script précédent. En effet, pour certains vieux films, l'image de couverture consiste en fait en une vidéo du film lui-même (entier!) et prend donc une grande place inutilement. Ce script prend en paramètre le chemin vers les images téléchargées avec le script précédent, en principe `images`.
+
+- `04_getSubtitles.py`: pour chaque film, tente de télécharger le fichier de sous-titres anglophones depuis OpenSubtitles, en utilisant le fichier de sous-titres ayant le plus grand nombre de téléchargements, donc potentiellement les plus corrects. Les fichiers téléchargés seront nommés en utilisant l'UUID du film correspondant, avec l'extension ".srt". Ce script prend en paramètre la collection de films (`allmovies.json`) ainsi que le chemin vers un dossier dans lequel stocker tous les fichiers de sous-titres, par exemple `subs_srt`. Un paramètre optionnel permet d'introduire un nombre de secondes de délai entre le scrapping de deux films, ce qui aide en cas de bloquage. le site OpenSubtitles est en effet susceptible de rapidement bloquer les requêtes, jugées trop nombreuses, avec une page à captcha. Le script supporte donc lui-aussi plusieurs exécution, en reprenant dans l'ordre de la liste des films ne possédant pas de sous-titres (il ne va pas les re-télécharger si un fichier srt est déjà présent dans le dossier de destination).
+
+- `05_srtToJson.py`: convertit tous les fichiers de sous-titres depuis leur format "SRT" en json. En effet, un fichier SRT n'est pas facilement exploitable tel quel, car l'encodage des caractères peut varier, les balises ont une structure particulière, et certaines entrées peuvent même contenir des erreurs. Ce script permet donc de les transformer en une structure plus rigide et avec un encodage fixe en UTF-8. Le script génère un fichier json par film, qui contient une simple liste d'entrée, chacune correspondant à un sous-titre avec les champs (début [seconde], fin [seconde], texte). Le script prend simplement en paramètre le chemin vers le dossier contenant les srt téléchargés au script précédent (`subs_srt`) ainsi que le chemin vers un dossier dans lequel enregistrer les fichiers convertis, par exemple `subs_json`.
+
+- `06_filterMovies.py`: ce script permet de nettoyer un peu la collection de films complète en ne conservant que les films d'un intervalle d'années de sortie donné, et dont on a pu télécharger l'image de couverture et les sous-titres avec les scripts précédents. Dans notre cas, nous sommes passés de presque 39'000 films à seulement 9000 en conservant l'intervalle 1990 à 2022. Ce script génère une nouvelle collection de films qui sera directement utilisable comme source de métadonnées par notre interface. Le script prend en paramètre la collection complète (`allmovies.json`), le chemin vers le dossier des images, le chemin vers les fichiers de sous-tites en json (`subs_json`), l'intervalle d'années à conserver (inclusif) et le chemin vers le nouveau fichier à créer qui devrait être nommé `movies.json` pour que l'interface puisse l'utiliser directement.
+
+### Exploitation des données
+
+- `07_sentimentAnalysis.py`: effectue l'analyse de sentiments à partir des fichiers de sous-titres pour chaque film. Cette opération utilise un modèle d'inteligence artifielle de type BART, basée sur les transformers, ce qui est très gourmand en ressources. En utilisant une version basée sur CPU, notre analyse a duré plusieurs jours. Cependant, le script détecte automatiquement si un périphérique CUDA est disponible pour accélérer le processus. Les sous-titres de chaque film sont groupés dans une certaine fenêtre temporelle et analysés par le modèle. Le script crée un fichier json pour chaque film analysé, contenant une liste d'entrées (début [seconde], score negatif, score positif). Le script prend en paramètre la collection de films (`movies.json`), le dossier contenant les sous-titres en json (`subs_json`), la taille de la fenêtre temporelle (15 secondes semble une bonne valeur) ainsi que le chemin vers un dossier dans lequel enregistrer les résultats de l'analyse, nommé en principe `analysis` pour être utilisé par l'interface.
+
+- `08_dramaticSignature.py`: calcule les coefficients polynomiaux à n degrés pour correspondre au mieux aux courbes de sentiments positifs, négatifs ainsi qu'à une courbe aditionnelle correspant à leur différence. Afin de travailler sur un signal moins bruité, le script utilise une moyenne mouvante pour lisser les courbes. Ce script prend en paramètre la collection de films (`movies.json`), le dossier contenant les résultats de l'analyse de sentiments calculée au script précédent (`analysis`), la taille de la fenêtre pour la moyenne mouvante (128 semble être une bonne valeur), le nombre de degrés à utiliser (16 semble une bonne valeur) et le chemin vers le fichier de résultat dans lequel stocker les données, devrait être nommé `nlp.json`. En effet, ce fichier unique est aussi utilisé comme fichier de sortie commun pour les scripts suivants et est utilisé par l'interface.
+
+- `09_extractTags.py`: extrait les thèmes du film à partir d'une liste de tags fixe. Ce script travaille en concaténant le texte entier des dialogues de chaque film et en le passant à un modèle de type "Zero Shot Classification". Le résultat est une liste de scores par tag, enregistré dans un fichier nommé json nommé avec l'UUID du film correspondant. Ce script prend en paramètre la collection de films (`movies.json`), le dossier contenant les sous-titres en json (`subs_json`) ainsi que le dossier dans lequel créer les json résultats, par exemple `tags`. Comme ce script utilise lui-aussi un modèle de type BART, très gourmand en ressources, l'argument `-c` permet de spécifier le périphérique CUDA à utiliser s'il y en a à disposition.
+
+- `10_getTags.py`: extrait les tags les plus pertinents pour chaque film à partir des scores calculés par le script précédent. Ce script va simplement conserver un nombre minimal de tags, ayant les scores les plus élevés, ainsi que les éventuels tags suivants s'ils dépassent un certain seuil. Ce script prend en paramètre la collection de films (`movies.json`), le dossier contenant les sous-titres en json (`subs_json`) ainsi que le chemin vers le fichier de résultat commun dans lequel stocker les données, devrait être nommé `nlp.json`. Des paramètres optionnels permettent de définir le nombre minimal de tags à conserver (3 dans notre cas), ainsi que le seuil pour les tags optionnels (0.5 dans notre cas).
+
+- `11_nlpStats.py`: calcule les statistiques linguistiques (TTR, score Flesch–Kincaid, score de lisibilité) pour chaque film. Ce script prend en paramètre la collection de films (`movies.json`), le dossier contenant les sous-titres en json (`subs_json`) ainsi que le chemin vers le fichier de résultat commun dans lequel stocker les données, devrait être nommé `nlp.json`.
+
+### Interface
+L'interface est une page web unique (SPA) créée en utilisant le package `streamlit` et qui utilise les différents fichiers de sortie des scripts de la partie extraction et analyse. Le dossier contenant ces données devrait contenir les éléments suivants:
+
+- `movies.json`: la collection des films et leurs métadonnées, en principe l'output du script `06_filterMovies.py` (chargé en mémoire en entier).
+- `nlp.json`: les données issues de la partie analyse linguistique, contenant les signatures de l'évolution dramatique, les tags et les statistiques pour chaque film, en principe les sorties combinées des scripts `08_dramaticSignature.py`, `10_getTags.py` et `11_nlpStats.py` (chargé en mémoire en entier).
+- `images`: dossier contenant les images de couverture pour chaque film, à afficher dans le panneau de détails du film sélectionné (chargé à la volée).
+- `analysis`: dossier contenant l'évolution détaillée des sentiments au cours du film, utilisée pour dessiner les graphiques, en principe la  sortie du script `07_sentimentAnalysis.py` (chargé à la volée).
+
 # Analyse des données
 Afin d’explorer les données que nous avons obtenues via le dump Wikipédia ainsi que l’extraction depuis OpenSubtitles, nous travaillons dans des notebooks jupyter, ce qui nous permet une grande flexibilité. Une fois que les différents traitements à apporter aux données ainsi qu’aux résultats, obtenus via les algorithmes ou modèles d’intelligence artificielle, sont connus, le code est nettoyé et placé dans différents scripts python qui peuvent alors être utilisés directement.
 
@@ -134,6 +178,20 @@ Il faudrait donc que le modèle ait une très grande sensibilité associées à 
 Pour pallier à ce problème, une idée d'amélioration serait par exemple de faire l'analyse en plusieurs passes: la première en ne fournissant qu'une dizaine de tags très génériques, permettant de catégoriser grossièrement le type de film, et une seconde phase en fournissant un sous-ensemble de tags associés à la catégorie plus générique détectée à la première phase. Par exemple la catégorie large "suspense" pourrait être associée à des sous-catégies comme "conspiracy", "crime", "detective", "murder", "spy" etc.
 
 Il serait aussi possible de "nettoyer" un peu plus le texte fourni au modèle, par exemple en supprimant complètement les mots ou même des phrases entières jugées comme pauvres en sens.
+
+## Calcul des caractéristiques linguistiques
+Cette partie est purement statistique et n'utilise pas d'intelligence artificielle. À partir des dialogues du film, nous extrayons quelques informations linguistiques qui permettent par exemple d'établir la complexité d'un texte ou encore sa facilité de lecture.
+
+Pour chaque film, nous avons ainsi calculé 3 scores:
+
+- TTR (Type-to-Token Ratio): ce simple indicateur représente la "richesse" du vocabulaire utilisé. En NLP, un "type" désigne un mot unique, et un "token" est une occurence d'un "type" dans le texte. Un ratio élevé indique que le texte possède une plus grande richesse, avec des mots plus variés qu'un ratio faible.
+- Flesch–Kincaid readability score: cet indicateur mesure la difficulté de compréhension d'un texte, basée principalement sur la longueur des mots et des phrases. Ici, le score va de 0 à 100 et lpus le score est élevé, plus le texte est facile à lire. L'anglais conversationnel moyen se situe à des scores entre 80 et 90, c'est donc les valeurs que nous nous attendons à avoir pour les dialogues des films.
+- Readability Consensus: cet indicateur fourni par le package `textstat` est une moyenne de plusieurs autres indicateurs de lisibilité qui représentent le niveau scolaire américain requis pour la bonne compréhension du texte. 
+
+![nlp](images/nlp.png)
+
+Sur cette figure, les outliers ont été supprimés. Nous constatons que la lisibilité est globalement très bonne, avec des score Flesch–Kincaid plus élevés que 90 dans la plupart des cas. Le score de lisibilité indique que la majorité des films (ou en tout cas la pure lisibilité de leurs dialogues) sont compréhensibles pour des élèves de 3 à 5ème année, donc entre 8 et 11 ans.
+
 
 ## Limites
 Films avec peu de dialogue
