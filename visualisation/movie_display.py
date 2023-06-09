@@ -16,6 +16,8 @@ st.set_page_config(layout="wide")
 if 'selected_uuid' not in st.session_state: st.session_state['selected_uuid'] = None
 if 'last_search' not in st.session_state: st.session_state['last_search'] = None
 if 'last_selected' not in st.session_state: st.session_state['last_selected'] = None
+if 'match_cache_uuid' not in st.session_state: st.session_state['match_cache_uuid'] = None
+if 'match_cache' not in st.session_state: st.session_state['match_cache'] = []
 
 #st.write("""
 #### F.U.C.K.C.E.D.R.I.C.
@@ -180,8 +182,15 @@ elif st.session_state.selected_uuid is not None:
         with tabs[2]:
             # give a control to choose the number of matches to display
             n_matches = st.slider("Number of matchs", min_value=1, max_value=12, value=4)
-            sortedBySignature = matchSignature(df, selected_movie["signature"][2])
-            sortedBySignature.pop(sortedBySignature.index(selected_movie["uuid"]))
+            # Manual caching in the session state to avoid recomputing the matches
+            if st.session_state.match_cache_uuid == selected_movie["uuid"]:
+                sortedBySignature = st.session_state.match_cache
+            else:
+                sortedBySignature = matchSignature(df, selected_movie["signature"][2])
+                sortedBySignature.pop(sortedBySignature.index(selected_movie["uuid"]))
+                st.session_state.match_cache_uuid = selected_movie["uuid"]
+                st.session_state.match_cache = sortedBySignature
+
             matches = df.reindex(sortedBySignature[:n_matches])
             display_cards(matches, path, N_cards_per_row=4, display_plot=True, selected_movie=selected_movie)
 
