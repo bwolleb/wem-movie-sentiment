@@ -3,7 +3,104 @@
 - Massimo De Santis
 - Benoist Wolleb
 
+# Contexte et objectifs du projet
+
+## Contexte
+
+En raison du nombre croissant de films disponibles et de la quantité d'informations disponibles sur chaque film, il est devenu nécessaire de mettre en place des techniques efficaces pour analyser et catégoriser ces films. Dans ce contexte, les méthodes d'apprentissage automatique et de traitement du langage naturel (NLP) offrent des possibilités intéressantes pour répondre à cette demande.
+
+Dans le cas de notre projet, nous nous intéressons à l'analyse des films à partir de leurs dialogues, en utilisant des techniques de NLP et de web scraping pour récupérer les métadonnées des films et leurs sous-titres.
+
+## Objectifs
+
+L'objectif principal de ce projet est d'analyser les sentiments présents tout au long des films en utilisant des techniques de NLP et de classer les films thématiquement à l'aide de cette analyse. Plus précisément, nous visons à :
+
+1. Récupérer les métadonnées des films à partir d'un dump de Wikipedia, incluant des informations telles que le titre, l'année de sortie, le réalisateur, les acteurs, le genre et la durée.
+
+2. Scraper les sous-titres des films sur le site https://forum.opensubtitles.org/, en veillant à sélectionner les sous-titres anglais correspondant aux films analysés.
+
+3. Effectuer une analyse de sentiment sur les dialogues extraits des sous-titres pour détecter les émotions présentes tout au long des films.
+
+4. Classer les films selon des thèmes basés sur l'analyse de sentiment effectuée, en tirant parti de techniques de clustering ou de classification supervisée.
+
+5. Présenter les résultats de l'analyse de manière graphique et intuitive sur une interface utilisateur web, incluant des informations sur les films, les sentiments et les statistiques de langage.
+
+6. Fournir un moyen pour les utilisateurs de rechercher des films similaires en fonction de leur signature émotionnelle et de leurs thèmes, aidant ainsi à la découverte de nouveaux films en fonction des préférences personnelles.
+
+En résumé, ce projet vise à explorer le potentiel des techniques de NLP et de web scraping pour analyser les films à partir de leurs dialogues et les métadonnées récupérées. Les objectifs comprennent la détection des sentiments, la classification thématique et la présentation des résultats sur une interface utilisateur web, permettant une meilleure compréhension et une exploration plus facile des films en fonction de leurs émotions et thèmes.
+
+# Données
+
+Pour mener à bien notre étude sur l'analyse de sentiments et la classification thématique des films, nous avons utilisé diverses sources de données.
+
+## Dump de Wikipedia
+
+Nous avons collecté un large échantillon de métadonnées de films à partir d'un dump de Wikipedia. Ce dump contient des informations telles que le titre, l'année de sortie, le réalisateur, les acteurs, le genre et la durée de chaque film. Il constitue notre base de données principale pour les films à analyser. Après un traitement initial, notre sélection finale comporte 9 170 films disponibles pour l'analyse.
+
+## Sous-titres issus d'OpenSubtitles
+
+Les sous-titres des films ont été récupérés sur le site https://forum.opensubtitles.org/. Cette source nous a permis d'accéder à une grande quantité de sous-titres en anglais, en lien avec les films listés dans notre échantillon issu du dump de Wikipedia. Nous avons utilisé des techniques de web scraping pour récupérer les fichiers de sous-titres et les organiser par film. Les sous-titres sont ensuite convertis en fichiers JSON pour faciliter leur utilisation dans nos analyses.
+
+## Tags prédéfinis
+
+Afin d'identifier les thèmes des films à partir de leurs dialogues, une liste de 100 tags a été définie manuellement. Cette liste comprend des catégories génériques telles que "action", "aventure" ou "thriller", ainsi que des catégories plus spécifiques comme "coming of age", "journey" ou "dark comedy". Cette liste permet ainsi d'explorer une variété de thèmes potentiels dans les films.
+
+## Preprocessing des données
+
+Avant de procéder à l'analyse du contenu des films, nous effectuons un preprocessing pour nettoyer les données et les préparer à être traitées par les modèles de NLP.
+
+### Nettoyage des métadonnées
+
+Les données de métadonnées extraites du dump de Wikipédia requièrent un nettoyage avant d'être utilisées. Les erreurs et incohérences sont supprimées, les données manquantes sont interpolées si possible et tout est normé dans un format standard.
+
+### Préparation des sous-titres
+
+Les fichiers de sous-titres sont tout d'abord convertis en fichiers JSON pour faciliter leur traitement. Ensuite, nous groupons les dialogues en fonction des fenêtres temporelles, permettant ainsi d'analyser plusieurs lignes de dialogue en même temps lors de l'évaluation des sentiments. Cela améliore la précision de l'analyse et permet de prendre en compte le contexte des dialogues.
+
+## Données finales
+
+Une fois les données prétraitées, nous disposons d'un échantillon de 9 170 films avec leurs métadonnées, sous-titres et tags associés pour effectuer nos analyses. Ces données sont prêtes à être traitées par les modèles de traitement du langage naturel et de classification pour répondre aux objectifs définis dans ce projet, à savoir l'analyse de sentiments, la classification thématique et la présentation des résultats sur une interface utilisateur web.
+
+Dans l'ensemble, notre sélection de données comprend une variété de genres, d'années et de réalisateurs, permettant ainsi une analyse diversifiée et représentative des films. Il convient de noter que certaines limitations subsistent, telles que la présence de films avec peu de dialogues ou des erreurs dans les fichiers collectés. Malgré ces défis, notre base de données constitue une ressource suffisante pour explorer le potentiel des techniques de NLP et de web scraping dans l'analyse des films à partir de leurs dialogues et métadonnées.
+
+# État de l'art
+
+L'analyse de données dans le domaine du cinéma amène à travailler sur plusieurs aspects du langage naturel. Dans ce chapitre, nous allons discuter des modèles état de l'art utilisés dans le traitement du langage naturel (NLP) qui ont été employés dans notre projet.
+
+## Modèles NLP utilisés
+
+### Modèles basés sur les Transformers
+
+Les modèles basés sur les Transformers ont émergé ces dernières années comme une référence en matière de traitement du langage naturel. En particulier, les modèles tels que BERT, GPT-2 et RoBERTa sont connus pour leur performance exceptionnelle dans diverses tâches de NLP.
+
+Dans notre projet, nous avons utilisé les modèles suivants basés sur des Transformers :
+
+1. **Twitter-roBERTa-base for Sentiment Analysis (cardiffnlp/twitter-roberta-base-sentiment-latest)**: Ce modèle est basé sur RoBERTa, une variante de BERT optimisée pour la performance. Il a été spécifiquement pré-entraîné pour l'analyse de sentiments sur des extraits de Twitter. Ce modèle est utilisé dans notre projet pour analyser les sentiments des dialogues de films. Il fournit des scores de probabilité pour trois classes de sentiments: positif, négatif et neutre.
+
+2. **BART-large-mnli (facebook/bart-large-mnli)**: BART est un autre modèle basé sur les Transformers et est adapté pour la génération de texte ainsi que pour les tâches de classification de texte. Ce modèle a été pré-entraîné pour la tâche de "Zero Shot Text Classification" et est utilisé dans notre projet pour extraire les thèmes des films à partir des dialogues. En fournissant un texte et une liste de tags potentiels au modèle, il est capable de prédire les probabilités associées à chaque tag.
+
+Ces modèles basés sur les Transformers ont montré des résultats prometteurs dans diverses applications de NLP, notamment la traduction automatique, la génération de texte, la reconnaissance d'entités nommées et la classification de texte. En particulier, les modèles tels que BERT, GPT-2 et RoBERTa ont démontré une capacité à capturer des informations contextuelles et à apprendre de manière non supervisée à partir de vastes quantités de données textuelles.
+
+En utilisant ces modèles état de l'art dans notre projet, nous espérons améliorer notre compréhension des émotions et des thèmes présents dans les films grâce à l'analyse de leurs dialogues. Grâce à la combinaison d'une analyse de sentiment basée sur RoBERTa et d'une extraction de thèmes basée sur BART, nous visons à fournir une caractérisation détaillée et nuancée des films, permettant ainsi leur classification thématique et émotionnelle.
+
+
+
 # Architecture
+Dans cette section, nous aborderons l'architecture générale de notre projet de web mining. Nous avons conçu une architecture basée sur un ensemble de différents scripts Python et modèles (NLP) qui permettent de récupérer, prétraiter et analyser les données. De plus, une interface utilisateur web a été développée pour présenter les résultats et faciliter leur exploration.
+
+
+Dans la suite, nous décrirons en détail les différents composants et étapes de notre pipeline et leur relation entre eux. Nous présenterons également quelques résultats et observations obtenus grâce à notre architecture.
+
+En résumé, notre architecture prend en compte les aspects suivants:
+
+- Récupération des données à partir de sources en ligne telles que Wikipedia et OpenSubtitles
+- Prétraitement et nettoyage des données, y compris la conversion des sous-titres au format JSON
+- Analyse des données en utilisant des techniques de NLP pour l'analyse de sentiments, la classification thématique et l'extraction de caractéristiques linguistiques
+- Présentation des résultats à travers une interface utilisateur web interactive
+
+![match_curve](images/architecture.jpg)
+
+Dans la suite de ce chapitre, nous décrirons en détail chaque composant et étape de notre pipeline d'architecture. Cela inclut la description des modules et techniques utilisés dans la récupération et l'analyse des données, ainsi que les résultats obtenus et les implications pour notre projet.
 
 ## Pipeline
 Afin de récupérer et exploiter les données, la pipeline des opérations est grossièrement distincte en deux étapes:
