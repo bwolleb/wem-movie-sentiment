@@ -192,6 +192,18 @@ Pour chaque film, nous avons ainsi calculé 3 scores:
 
 Sur cette figure, les outliers ont été supprimés. Nous constatons que la lisibilité est globalement très bonne, avec des score Flesch–Kincaid plus élevés que 90 dans la plupart des cas. Le score de lisibilité indique que la majorité des films (ou en tout cas la pure lisibilité de leurs dialogues) sont compréhensibles pour des élèves de 3 à 5ème année, donc entre 8 et 11 ans.
 
+# Gestion de projet
+Nous avons globalement respecté ce que nous avions prévu dans le planning initial spécifié dans le cahier des charges. Nous avions prévu plusieurs grosses tranches:
+
+- Tâche 1 "Récupération des sous-titres" (3 semaines): cette tâche s'est avérée plus compliquée que prévu, car même si l'implémentation en elle-même des requêtes à utiliser pour chercher sur OpenSubtitles était relativement simple, le site détectait très rapidement un nombre trop élevé de requêtes. Nous avons donc dû ajouter un délai entre les requêtes (implémenté dans le script), utilisé plusieurs VPNs à plusieurs reprises, et nous nous sommes répartis un sous-ensemble de films à traiter pour réussir à récupérer un bon nombre de fichiers de sous-titres. Cette tâche nous a donc finalement pris une semaine supplémentaire par rapport à notre plan.
+
+- Tâche 4 "Analyse linguistique" (3 semaines): pour cette tâche nous avons effectivement mis le temps estimé, le gros du temps étant surtout utilisé par faire fonctionner les scripts d'analyse. En effet, comme mentionné plus haut, les modèles utilisés sont relativement lourds et complexes et les exécuter sur CPU est fatalement peu efficace. L'analyse de sentiments et l'extraction des tags ont mis plusieurs jours pour être évalués sur notre sous-ensemble de 9000 films.
+
+- Tâche 5 "backend et interface" et 6 "interface utilisateur": nous ne connaissions par `streamlit` avant de commencer le projet, aussi nous avons découvert pendant l'implémentation que cette technologie ne demande pas d'implémenter un backend séparé de l'interface, comme dans la plupart des framework pour le web. Ici, l'intégralité du code est écrit en python, y compris les opérations spécifiques qui ne sont par conséquents pas des endpoints HTTP/REST mais de simples fonctions. Ces deux tâches ne sont donc plus véritablment distinctes.
+
+Enfin, dans la planification initiale nous n'avions pas prévu de temps pour le rapport, qui s'est pourtant avéré une partie non négligeable. La planification finale est par conséquent la suivante:
+
+![planning_final](images/planning_final.jpg)
 
 ## Limites
 Films avec peu de dialogue
