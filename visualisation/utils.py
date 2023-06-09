@@ -12,7 +12,7 @@ from io import StringIO
 tags = ["action", "addiction", "adolescence", "adoption", "adultery", "adventure", "alcohol", "alien", "amnesia", "animal", "animation", "anti hero", "apocalypse", "art", "artificial intelligence", "assassin", "bank", "betrayal", "biography", "business", "car", "casino", "celebrity", "chase", "children", "cinema", "comedy", "coming of age", "computer", "conspiracy", "crime", "cyberpunk", "dance", "dance", "dark comedy", "detective", "disaster", "documentary", "dog", "drama", "drug", "dystopia", "environment", "epic", "espionage", "family", "family drama", "fantasy", "fear", "film noir", "friendship", "future", "gambling", "gangster", "ghost", "gore", "heist", "high school", "historical", "horror", "human rights", "journey", "lgbt", "love", "martial arts", "magic", "mafia", "mental illness", "murder", "music", "musical", "mystery", "nature", "neo-noir", "paranormal", "period drama", "political satire", "politics", "post-apocalyptic", "psychological thriller", "racism", "religion", "romance", "romantic comedy", "satire", "sci-fi", "space", "sports", "spy", "superhero", "supernatural", "survival", "suspense", "terrorism", "thriller", "travel", "vampire", "war", "western", "zombie"]
 
 def loadJson(path):
-    f = open(path,encoding="utf-8")
+    f = open(path, encoding="utf8")
     data = json.load(f)
     f.close()
     return data
@@ -205,10 +205,10 @@ def searchMovie(data, title="", actors="", yearRange=None, ttrRange=None, tags=[
         npTags = np.array(tags)
         tagFilter = data["tags"].apply(lambda tags: np.intersect1d(tags, npTags).size == len(npTags))
 
-    result = data[titleFilter & dateFilter & ttrFilter & actorFilter & tagFilter].head(maxNb)
+    result = data[titleFilter & dateFilter & ttrFilter & actorFilter & tagFilter]
 
     if signature != None:
         sortedBySignature = matchSignature(result, signature)
         result = result.reindex(sortedBySignature)
 
-    return result
+    return result.head(maxNb)
