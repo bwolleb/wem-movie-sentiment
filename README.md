@@ -240,7 +240,19 @@ De tous ces segments, seulement deux se déroulent dans le futur et pourtant le 
 
 En effectuant une extraction des thèmes directement depuis les dialogues du film, nous espérons obtenir un résultat plus précis, ou du moins plus pertinent des véritables thématiques abordées par le scénario et les personnages.
 
-Le modèle que nous utilisons pour cette tâche est [bart-large-mnli](https://huggingface.co/facebook/bart-large-mnli) entraîné par Facebook et qui permet d'effectuer une "Zero Shot Text Classification". Concrètement, le modèle prend un texte à évaluer et une liste de tags en entrée, et fournit les probabilités associées pour chacun de ces tags en sortie.
+Nous avons tout d'abord tenté une approche purement "non supervisée", en utilisant une technique d'extraction des mots les plus pertinents dans tout le texte des dialogues du film. Cette technique, dont le code et les explications sont librement disponibles sur le blog [Topic Modeling BERT+LDA](https://www.kaggle.com/code/dskswu/topic-modeling-bert-lda), utilise un encodeur BERT, un algorithme de groupement thématique LDA et un autoencodeur pour créer des clusters thématiques. Le résultat est un nuage de mots représentant les plus importants clusters au sein du texte:
+
+![wordcloud](images/wordcloud.png)
+
+Nous avons cependant abandonné cette idée pour plusieurs raisons:
+
+- Les mots en sortie représentant les clusters sont tronqués par l'étape de "stemming", c'est à dire qu'ils sont coupés afin de réduire leur variété: par exemple "dimens" représente à la fois "dimension" et "dimensional" s'ils sont tous deux dans le texte initial. Cette opération pourrait toutefois probablement être retirés de la chaîne de pré-traitement, mais peut-être au prix d'un peu de pertinence.
+
+- Parmi les mots les plus pertinents, il y a beaucoup de noms propres (Brand, Miller, Cooper, Murphi) ce qui est tout à fait normal lorsque le texte traité contient des dialogues. Cependant, ils ne sont pas indicatifs des thématiques abordées dans le film, aussi il faudrait les retirer du texte avant analyse, par exemple via une opération de "Part of Speech Tagging" qui permet de détecter les types de mots.
+
+- Même avec ces améliorations, les mots les plus pertinents sont directement issus des dialogues, et par conséquent pourraient être très différents même pour des films abordant les mêmes thématiques, car ils dépendent du vocabulaire utilisé dans le script. Afin de pouvoir grouper les films similaires, ce qui est ce que nous cherchons à accomplir ici, il faudrait donc passer encore par une étape qui détecte les similarités entre les mots résultats de cette analyse pour chaque film.
+
+Nous sommes donc partis sur une approche différente, à base de tags prédéfinis. Le modèle que nous utilisons pour cette tâche est [bart-large-mnli](https://huggingface.co/facebook/bart-large-mnli) entraîné par Facebook et qui permet d'effectuer une "Zero Shot Text Classification". Concrètement, le modèle prend un texte à évaluer et une liste de tags en entrée, et fournit les probabilités associées pour chacun de ces tags en sortie.
 
 Nous avons donc établi une liste de 100 tags à associer aux films qui vont de valeurs très génériques comme "action", "adventure", "thriller" à des valeurs un peu plus spécifiques comme "coming of age", "journey" ou "dark comedy".
 
