@@ -46,10 +46,11 @@ header-includes:
     \renewcommand{\tightlist}{\setlength{\itemsep}{4pt}\setlength{\parskip}{0pt}}
     \renewcommand{\labelitemii}{$\circ$}
     \pagenumbering{gobble}
+    \setlength{\belowcaptionskip}{-10pt}
+    \usepackage{array}
 include-before:
 - '`\newpage{}`{=latex}'
 ...
-
 \newpage
 \pagenumbering{arabic}
 \renewcommand{\contentsname}{Table des matières}

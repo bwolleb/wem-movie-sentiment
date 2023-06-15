@@ -32,6 +32,8 @@ Pour mener à bien notre étude sur l'analyse de sentiments et la classification
 
 Nous avons collecté un large échantillon de métadonnées de films à partir d'un dump de Wikipédia. Ce dump contient des informations telles que le titre, l'année de sortie, le réalisateur, les acteurs, le genre et la durée de chaque film. Il constitue notre base de données principale pour les films à analyser. Après un traitement initial, notre sélection finale comporte 9 170 films disponibles pour l'analyse.
 
+\newpage
+
 ## Sous-titres issus d'OpenSubtitles
 
 Les sous-titres des films ont été récupérés sur le site https://www.opensubtitles.org/fr. Cette source nous a permis d'accéder à une grande quantité de sous-titres en anglais, en lien avec les films listés dans notre échantillon issu du dump de Wikipédia. Nous avons utilisé des techniques de web scraping pour récupérer les fichiers de sous-titres et les organiser par film. Les sous-titres sont ensuite convertis en fichiers JSON pour faciliter leur utilisation dans nos analyses.
@@ -58,6 +60,8 @@ Une fois les données pré-traitées, nous disposons d'un échantillon de 9 170 
 
 Dans l'ensemble, notre sélection de données comprend une variété de genres, d'années et de réalisateurs, permettant ainsi une analyse diversifiée et représentative des films. Il convient de noter que certaines limitations subsistent, telles que la présence de films avec peu de dialogues ou des erreurs dans les fichiers collectés. Malgré ces défis, notre base de données constitue une ressource suffisante pour explorer le potentiel des techniques de NLP et de web scraping dans l'analyse des films à partir de leurs dialogues et métadonnées.
 
+\newpage
+
 # État de l'art
 
 L'analyse de données dans le domaine du cinéma amène à travailler sur plusieurs aspects du langage naturel. Dans ce chapitre, nous allons discuter des modèles état de l'art utilisés dans le traitement du langage naturel (NLP) qui ont été employés dans notre projet.
@@ -81,8 +85,9 @@ En utilisant ces modèles état de l'art dans notre projet, nous espérons amél
 # Architecture
 Dans cette section, nous aborderons l'architecture générale de notre projet de web mining. Nous avons conçu une architecture basée sur un ensemble de différents scripts Python et modèles (NLP) qui permettent de récupérer, pré-traiter et analyser les données. De plus, une interface utilisateur web a été développée pour présenter les résultats et faciliter leur exploration.
 
-
 Dans la suite, nous décrirons en détail les différents composants et étapes de notre pipeline et leur relation entre eux. Nous présenterons également quelques résultats et observations obtenus grâce à notre architecture.
+
+\newpage
 
 En résumé, notre architecture prend en compte les aspects suivants:
 
@@ -102,6 +107,8 @@ Afin de récupérer et exploiter les données, la pipeline des opérations est g
 - Transformation des données et analyse: transformation des sous-titres depuis leur format de base SRT en une structure plus facilement utilisable (structurée et indépendante de l'encodage des caractères) et exploitation du texte obtenu pour analyse de sentiments, extraction des thèmes et statistiques NLP.
 
 Tous les scripts qui effectuent ces étapes sont présents dans l'ordre de leur utilisation dans le dossier [analysis](analysis). Le point de départ est le fichier de dump complet de Wikipédia anglophone en format XML qui peut être librement téléchargé depuis [Wikimedia Downloads](https://dumps.wikimedia.org/backup-index.html). Le fichier approprié se trouve dans la section `enwiki` et est normalement nommé `enwiki-YYYYMMDD-pages-articles-multistream.xml.bz2` et pèse environ 20 Gio compressé, et environ 88 Gio décompressé.
+
+\newpage
 
 ### Récupération des données
 
@@ -134,6 +141,9 @@ L'interface est une page web unique (SPA) créée en utilisant le package `strea
 
 - `movies.json`: la collection des films et leurs métadonnées, en principe l'output du script `06_filterMovies.py` (chargé en mémoire en entier).
 - `nlp.json`: les données issues de la partie analyse linguistique, contenant les signatures de l'évolution dramatique, les tags et les statistiques pour chaque film, en principe les sorties combinées des scripts `08_dramaticSignature.py`, `10_getTags.py` et `11_nlpStats.py` (chargé en mémoire en entier).
+
+\newpage
+
 - `images`: dossier contenant les images de couverture pour chaque film, à afficher dans le panneau de détails du film sélectionné (chargé à la volée).
 - `analysis`: dossier contenant l'évolution détaillée des sentiments au cours du film, utilisée pour dessiner les graphiques, en principe la  sortie du script `07_sentimentAnalysis.py` (chargé à la volée).
 
@@ -145,6 +155,7 @@ Notre cas d’étude est le film “Interstellar” réalisé par Christopher No
 ![Affiche du film Interstellar](images/interstellar.jpg){width=8cm}
 
 Les caractéristiques que nous souhaitons extraire de manière automatique sont les suivantes :
+
 - Analyse de sentiments depuis les lignes de dialogue, ce qui ramené à l’échelle du film entier permettrait de déterminer l’évolution dramatique générale tout au long du déroulement du film.
 - Extraction des thèmes et mots clés, ce qui permettrait d’isoler les sujets principaux et de classer les films par thème, de manière automatique.
 - Calcul de diverses statistiques de langage, comme la richesse du vocabulaire ou l’indice de lisibilité.
@@ -160,7 +171,11 @@ Ensuite, le texte est passé pour analyse de sentiments au modèle “Twitter-ro
 
 ![Scores bruts de l'analyse de sentiments](images/sentiment_raw.pdf)
 
-L’analyse “brute” des sentiments depuis les dialogues est très bruitée, ce qui était attendu car, comme dit plus haut, il est difficile de calculer la tonalité depuis le langage parlé. Sur ces données, nous avons appliqué un lissage par moyennes mouvantes en essayant plusieurs largeurs de fenêtre et avons obtenu des résultats très intéressants, et visuellement interprétables :
+L’analyse “brute” des sentiments depuis les dialogues est très bruitée, ce qui était attendu car, comme dit plus haut, il est difficile de calculer la tonalité depuis le langage parlé.
+
+\newpage
+
+Sur ces données, nous avons appliqué un lissage par moyennes mouvantes en essayant plusieurs largeurs de fenêtre et avons obtenu des résultats très intéressants, et visuellement interprétables :
 
 ![Moyennes mouvantes des sentiments](images/sentiment_mov_avg.pdf)
 
@@ -168,30 +183,18 @@ Premièrement, on constate de manière assez logique que les courbes sont invers
  
 ![Mise en relation avec les événements du scénario](images/sentiment_interstellar.pdf)
 
-<table>
-	<tr>
-	<td><img src="images/interstellar_1.png" alt="1" width = 400px></td>
-	<td><p>Premier segment : exposition de la situation de départ. Cette partie est plutôt négative car elle présente un monde hostile et sans espoir, où l’humanité peine à survivre.</p></td>
-	</tr>
-	<tr>
-	<td><img src="images/interstellar_2.png" alt="2" width = 400px></td>
-	<td><p>Second segment : cette partie est caractérisée par l’espoir. Une solution pour ”sauver le monde” est présentée au personnage principal.</p></td>
-	</tr>
-	<tr>
-	<td><img src="images/interstellar_3.png" alt="3" width = 400px></td>
-	<td><p>Troisième segment : durant cette partie, les personnages explorent la planète Miller qui s’avère inhospitalière et offre l’un des moments les plus stressants du film, accompagné d’une séquence chargée en émotions après l’action principale.</p></td>
-	</tr>
-	<tr>
-	<td><img src="images/interstellar_4.png" alt="4" width = 400px></td>
-	<td><p>Quatrième segment : cette longue partie est le pivot dramatique du film, et beaucoup d’éléments en parallèle aggravent l’intrigue : révélations et mort du professeur Brand, trahison du docteur Mann et récupération de la situation par les personnages principaux, non sans dommage. Cette partie est la plus intense et stressante du film.</p></td>
-	</tr>
-	<tr>
-	<td><img src="images/interstellar_5.png" alt="5" width = 400px></td>
-	<td><p>Cinquième segment : durant ce dernier acte, la situation se résout pour les personnages, sauvant l’humanité au passage. Le final, bien que chargé en émotions est définitivement positif et porteur d’espoirs.</p></td>
-	</tr>
-</table>
+\begin{tabular}{ m{3.8cm} m{12cm}}
+\includegraphics[width=\linewidth]{images/interstellar_1.png} & Premier segment : exposition de la situation de départ. Cette partie est plutôt négative car elle présente un monde hostile et sans espoir, où l’humanité peine à survivre. \\
+\includegraphics[width=\linewidth]{images/interstellar_2.png} & Second segment : cette partie est caractérisée par l’espoir. Une solution pour ”sauver le monde” est présentée au personnage principal. \\
+\includegraphics[width=\linewidth]{images/interstellar_3.png} & Troisième segment : durant cette partie, les personnages explorent la planète Miller qui s’avère inhospitalière et offre l’un des moments les plus stressants du film, accompagné d’une séquence chargée en émotions après l’action principale. \\
+\includegraphics[width=\linewidth]{images/interstellar_4.png} & Quatrième segment : cette longue partie est le pivot dramatique du film, et beaucoup d’éléments en parallèle aggravent l’intrigue : révélations et mort du professeur Brand, trahison du docteur Mann et récupération de la situation par les personnages principaux, non sans dommage. Cette partie est la plus intense et stressante du film. \\
+\includegraphics[width=\linewidth]{images/interstellar_5.png} & Cinquième segment : durant ce dernier acte, la situation se résout pour les personnages, sauvant l’humanité au passage. Le final, bien que chargé en émotions est définitivement positif et porteur d’espoirs. \\
+\end{tabular}
+
 
 L’analyse semble ici avoir relativement bien représenté l’évolution dramatique de l’intrigue, avec évidemment quelques imprécisions.
+
+\newpage
 
 ## Caractérisation et similitudes
 
@@ -237,7 +240,7 @@ En effectuant une extraction des thèmes directement depuis les dialogues du fil
 
 Nous avons tout d'abord tenté une approche purement "non supervisée", en utilisant une technique d'extraction des mots les plus pertinents dans tout le texte des dialogues du film. Cette technique, dont le code et les explications sont librement disponibles sur le blog [Topic Modeling BERT+LDA](https://www.kaggle.com/code/dskswu/topic-modeling-bert-lda), utilise un encodeur BERT, un algorithme de groupement thématique LDA et un autoencodeur pour créer des clusters thématiques. Le résultat est un nuage de mots représentant les plus importants clusters au sein du texte:
 
-![Nuage de mots résultant de l'analyse](images/wordcloud.png){width=14cm}
+![Nuage de mots résultant de l'analyse](images/wordcloud.pdf){width=14cm}
 
 Nous avons cependant abandonné cette idée pour plusieurs raisons:
 
