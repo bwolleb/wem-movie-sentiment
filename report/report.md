@@ -70,17 +70,17 @@ L'analyse de données dans le domaine du cinéma amène à travailler sur plusie
 
 ### Modèles basés sur les Transformers
 
-Les modèles basés sur les Transformers ont émergé ces dernières années comme une référence en matière de traitement du langage naturel. En particulier, les modèles tels que BERT, GPT-2 et RoBERTa sont connus pour leur performance exceptionnelle dans diverses tâches de NLP.
+Les modèles basés sur les Transformers[@vaswani2017attention] ont émergé ces dernières années comme une référence en matière de traitement du langage naturel. En particulier, les modèles tels que BERT[@devlin2019bert], GPT-2[@radford2019language] et RoBERTa[@liu2019roberta] sont connus pour leur performance exceptionnelle dans diverses tâches de NLP.
 
 Dans notre projet, nous avons utilisé les modèles suivants basés sur des Transformers :
 
-1. **Twitter-roBERTa-base for Sentiment Analysis (cardiffnlp/twitter-roberta-base-sentiment-latest)**: Ce modèle est basé sur RoBERTa, une variante de BERT optimisée pour la performance. Il a été spécifiquement pré-entraîné pour l'analyse de sentiments sur des extraits de Twitter. Ce modèle est utilisé dans notre projet pour analyser les sentiments des dialogues de films. Il fournit des scores de probabilité pour trois classes de sentiments: positif, négatif et neutre.
+1. **Twitter-roBERTa-base for Sentiment Analysis (cardiffnlp/twitter-roberta-base-sentiment-latest)**[@barbieri-etal-2020-tweeteval]: Ce modèle est basé sur RoBERTa[@liu2019roberta], une variante de BERT[@devlin2019bert] optimisée pour la performance. Il a été spécifiquement pré-entraîné pour l'analyse de sentiments sur des extraits de Twitter. Ce modèle est utilisé dans notre projet pour analyser les sentiments des dialogues de films. Il fournit des scores de probabilité pour trois classes de sentiments: positif, négatif et neutre.
 
-2. **BART-large-mnli (facebook/bart-large-mnli)**: BART est un autre modèle basé sur les Transformers et est adapté pour la génération de texte ainsi que pour les tâches de classification de texte. Ce modèle a été pré-entraîné pour la tâche de "Zero Shot Text Classification" et est utilisé dans notre projet pour extraire les thèmes des films à partir des dialogues. En fournissant un texte et une liste de tags potentiels au modèle, il est capable de prédire les probabilités associées à chaque tag.
+2. **BART-large-mnli (facebook/bart-large-mnli)**[@bart; @mnli]: BART est un autre modèle basé sur les Transformers[@vaswani2017attention] et est adapté pour la génération de texte ainsi que pour les tâches de classification de texte. Ce modèle a été pré-entraîné pour la tâche de "Zero Shot Text Classification" et est utilisé dans notre projet pour extraire les thèmes des films à partir des dialogues. En fournissant un texte et une liste de tags potentiels au modèle, il est capable de prédire les probabilités associées à chaque tag.
 
-Ces modèles basés sur les Transformers ont montré des résultats prometteurs dans diverses applications de NLP, notamment la traduction automatique, la génération de texte, la reconnaissance d'entités nommées et la classification de texte. En particulier, les modèles tels que BERT, GPT-2 et RoBERTa ont démontré une capacité à capturer des informations contextuelles et à apprendre de manière non supervisée à partir de vastes quantités de données textuelles.
+Ces modèles basés sur les Transformers[@vaswani2017attention] ont montré des résultats prometteurs dans diverses applications de NLP, notamment la traduction automatique, la génération de texte, la reconnaissance d'entités nommées et la classification de texte. En particulier, les modèles tels que BERT[@devlin2019bert], GPT-2[@radford2019language] et RoBERTa[@liu2019roberta] ont démontré une capacité à capturer des informations contextuelles et à apprendre de manière non supervisée à partir de vastes quantités de données textuelles.
 
-En utilisant ces modèles état de l'art dans notre projet, nous espérons améliorer notre compréhension des émotions et des thèmes présents dans les films grâce à l'analyse de leurs dialogues. Grâce à la combinaison d'une analyse de sentiment basée sur RoBERTa et d'une extraction de thèmes basée sur BART, nous visons à fournir une caractérisation détaillée et nuancée des films, permettant ainsi leur classification thématique et émotionnelle.
+En utilisant ces modèles état de l'art dans notre projet, nous espérons améliorer notre compréhension des émotions et des thèmes présents dans les films grâce à l'analyse de leurs dialogues. Grâce à la combinaison d'une analyse de sentiment basée sur RoBERTa[@liu2019roberta] et d'une extraction de thèmes basée sur BART[@bart], nous visons à fournir une caractérisation détaillée et nuancée des films, permettant ainsi leur classification thématique et émotionnelle.
 
 # Architecture
 Dans cette section, nous aborderons l'architecture générale de notre projet de web mining. Nous avons conçu une architecture basée sur un ensemble de différents scripts Python et modèles (NLP) qui permettent de récupérer, pré-traiter et analyser les données. De plus, une interface utilisateur web a été développée pour présenter les résultats et faciliter leur exploration.
@@ -150,7 +150,7 @@ L'interface est une page web unique (SPA) créée en utilisant le package `strea
 # Analyse des données
 Afin d’explorer les données que nous avons obtenues via le dump Wikipédia ainsi que l’extraction depuis OpenSubtitles, nous travaillons dans des notebooks jupyter, ce qui nous permet une grande flexibilité. Une fois que les différents traitements à apporter aux données ainsi qu’aux résultats, obtenus via les algorithmes ou modèles d’intelligence artificielle, sont connus, le code est nettoyé et placé dans différents scripts python qui peuvent alors être utilisés directement.
 
-Notre cas d’étude est le film “Interstellar” réalisé par Christopher Nolan et sorti en 2014. Nous l’avons sélectionné tout simplement car nous l’avions tous deux vu, car il possède une évolution scénaristique typique (en 3 actes) et est centré sur des thématiques probablement simples à détecter de manière automatique : science-fiction, famille, amour, trahison.
+Notre cas d’étude est le film “Interstellar” réalisé par Christopher Nolan et sorti en 2014[@enwiki:1159953573]. Nous l’avons sélectionné tout simplement car nous l’avions tous deux vu, car il possède une évolution scénaristique typique (en 3 actes) et est centré sur des thématiques probablement simples à détecter de manière automatique : science-fiction, famille, amour, trahison.
 
 ![Affiche du film Interstellar](images/interstellar.jpg){width=8cm}
 
@@ -230,7 +230,7 @@ Il est cependant à noter que rien ne garantit qu’une signature dramatique sim
 ## Extraction des thèmes
 Les catégories dans lesquelles les films sont répertoriés n’ont parfois que peu de sens. En effet, un film ayant un scénario complexe, qui mélange une multitude de thèmes et d’enjeux sera probablement répertorié dans une catégorie “fourre-tout” comme “action” ou “drame”.
 
-Pour illustrer cet effet, on peut par exemple citer le film “Cloud Atlas” réalisé par Tom Tykwer ainsi que les sœurs Wachowski, sorti en 2012. Ce film raconte six histoires en parallèle, se déroulant à plusieurs époques différentes et avec des thèmes très variés.
+Pour illustrer cet effet, on peut par exemple citer le film “Cloud Atlas”[@enwiki:1156187889] réalisé par Tom Tykwer ainsi que les sœurs Wachowski, sorti en 2012. Ce film raconte six histoires en parallèle, se déroulant à plusieurs époques différentes et avec des thèmes très variés.
 
 ![Affiche du film Cloud Atlas](images/cloud_atlas.jpg){width=8cm}
 
@@ -238,7 +238,7 @@ De tous ces segments, seulement deux se déroulent dans le futur et pourtant le 
 
 En effectuant une extraction des thèmes directement depuis les dialogues du film, nous espérons obtenir un résultat plus précis, ou du moins plus pertinent des véritables thématiques abordées par le scénario et les personnages.
 
-Nous avons tout d'abord tenté une approche purement "non supervisée", en utilisant une technique d'extraction des mots les plus pertinents dans tout le texte des dialogues du film. Cette technique, dont le code et les explications sont librement disponibles sur le blog [Topic Modeling BERT+LDA](https://www.kaggle.com/code/dskswu/topic-modeling-bert-lda), utilise un encodeur BERT, un algorithme de groupement thématique LDA et un autoencodeur pour créer des clusters thématiques. Le résultat est un nuage de mots représentant les plus importants clusters au sein du texte:
+Nous avons tout d'abord tenté une approche purement "non supervisée", en utilisant une technique d'extraction des mots les plus pertinents dans tout le texte des dialogues du film. Cette technique, dont le code et les explications sont librement disponibles sur le blog [Topic Modeling BERT+LDA](https://www.kaggle.com/code/dskswu/topic-modeling-bert-lda), utilise un encodeur BERT[@devlin2019bert], un algorithme de groupement thématique LDA[@blei2003latent] et un autoencodeur pour créer des clusters thématiques. Le résultat est un nuage de mots représentant les plus importants clusters au sein du texte:
 
 ![Nuage de mots résultant de l'analyse](images/wordcloud.pdf){width=14cm}
 
@@ -296,7 +296,11 @@ Pour chaque film, nous avons ainsi calculé 3 scores:
 
 Sur cette figure, les outliers ont été supprimés. Nous constatons que la lisibilité est globalement très bonne, avec des scores Flesch–Kincaid plus élevés que 90 dans la plupart des cas. Le score de lisibilité indique que la majorité des films (ou en tout cas la pure lisibilité de leurs dialogues) sont compréhensibles pour des élèves de 3 à 5ème année, donc entre 8 et 11 ans.
 
-# Gestion de projet
+\newpage
+
+# Conclusion
+
+## Gestion de projet
 Nous avons globalement respecté ce que nous avions prévu dans le planning initial spécifié dans le cahier des charges. Nous avions prévu plusieurs grosses tranches:
 
 - Tâche 1 "Récupération des sous-titres" (3 semaines): cette tâche s'est avérée plus compliquée que prévu, car même si l'implémentation en elle-même des requêtes à utiliser pour chercher sur OpenSubtitles était relativement simple, le site détectait très rapidement un nombre trop élevé de requêtes. Nous avons donc dû ajouter un délai entre les requêtes (implémenté dans le script), utilisé plusieurs VPNs à plusieurs reprises, et nous nous sommes répartis un sous-ensemble de films à traiter pour réussir à récupérer un bon nombre de fichiers de sous-titres. Cette tâche nous a donc finalement pris une semaine supplémentaire par rapport à notre plan.
@@ -313,11 +317,13 @@ Enfin, dans la planification initiale nous n'avions pas prévu de temps pour le 
 
 Malgré nos efforts pour collecter et analyser les données de manière aussi précise et fiable que possible, notre projet rencontre certaines limites. Dans cette section, nous aborderons deux de ces limites : les films avec peu de dialogue et les erreurs dans les fichiers lors de la collecte.
 
+\newpage
+
 ### Films avec peu de dialogue
 
 L'une des limites de notre projet est la difficulté à analyser correctement les films qui contiennent peu de dialogues. En effet, puisque notre approche repose principalement sur l'analyse des sous-titres et des dialogues de chaque film, il se peut que certains films soient moins bien représentés par notre modèle que d'autres.
 
-Cela peut inclure des films qui utilisent principalement des éléments visuels pour transmettre leur histoire, ainsi que ceux qui ont un style plus minimaliste dans leur narration. Un bon exemple de ceci est le film expérimental "Amer" sorti en 2009 qui comporte en tout et pour tout 40 répliques sur 1h30 de film.
+Cela peut inclure des films qui utilisent principalement des éléments visuels pour transmettre leur histoire, ainsi que ceux qui ont un style plus minimaliste dans leur narration. Un bon exemple de ceci est le film expérimental "Amer"[@enwiki:1155794513] sorti en 2009 qui comporte en tout et pour tout 40 répliques sur 1h30 de film.
 
 ![Affiche du film Amer](images/amer.jpg){width=8cm}
 
@@ -347,6 +353,10 @@ Si nous devions continuer ce projet plus longuement, les améliorations suivante
 
 ![Évolution des tags au cours du film](images/interstellar_tag_per_time.pdf)
 
-- Soyons fous: dans un monde idéal, nous disposerions aussi du fichier vidéo associé à chaque film, ce qui nous permettrait d'utiliser la piste sonore, ainsi que la piste vidéo pour renforcer notre analyse. Par exemple, même si une ligne de dialogue semble banale en n'examinant que le fichier de sous-titres, les informations apportées par le son (intensité, fréquences, autres informations apportées après traitement du signal comme les MFCCs) pourraient améliorer la détection de l'émotion exprimée lors d'une scène. C'est par exemple ainsi que procèdent certaines plateformes de vidéo pour détecter les changements d'intensité dans les vidéos, par exemple ici sur Youtube:
+- Soyons fous: dans un monde idéal, nous disposerions aussi du fichier vidéo associé à chaque film, ce qui nous permettrait d'utiliser la piste sonore, ainsi que la piste vidéo pour renforcer notre analyse. Par exemple, même si une ligne de dialogue semble banale en n'examinant que le fichier de sous-titres, les informations apportées par le son (intensité, fréquences, autres informations apportées après traitement du signal comme les MFCCs, via le paquet python PyAudioAnalysis[@giannakopoulos2015pyaudioanalysis] par exemple) pourraient améliorer la détection de l'émotion exprimée lors d'une scène. C'est par exemple ainsi que procèdent certaines plateformes de vidéo pour détecter les changements d'intensité dans les vidéos, par exemple ici sur Youtube:
 
 ![Analyse d'intensité sur une vidéo Youtube](images/sa_youtube.jpg){width=12cm}
+
+\newpage
+
+# Bibliography

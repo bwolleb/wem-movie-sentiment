@@ -17,6 +17,18 @@ subtitle: |
     |
     |
     |
+    |
+    |
+    |
+    |
+    |
+    |
+    |
+    |
+    |
+    |
+    |
+    |
 author: 
     - Massimo De Santis
     - Benoist Wolleb
@@ -27,6 +39,8 @@ geometry: margin=2.5cm
 urlcolor: blue
 numbersections: true
 secnumdepth: 4
+bibliography: biblio.bib
+csl: ieee.csl
 header-includes:
     \usepackage{fancyhdr}
     \pagestyle{fancy}
@@ -46,7 +60,7 @@ header-includes:
     \renewcommand{\tightlist}{\setlength{\itemsep}{4pt}\setlength{\parskip}{0pt}}
     \renewcommand{\labelitemii}{$\circ$}
     \pagenumbering{gobble}
-    \setlength{\belowcaptionskip}{-10pt}
+    \setlength{\belowcaptionskip}{-5pt}
     \usepackage{array}
 include-before:
 - '`\newpage{}`{=latex}'
