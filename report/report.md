@@ -91,7 +91,7 @@ En résumé, notre architecture prend en compte les aspects suivants:
 - Analyse des données en utilisant des techniques de NLP pour l'analyse de sentiments, la classification thématique et l'extraction de caractéristiques linguistiques
 - Présentation des résultats à travers une interface utilisateur web interactive
 
-![architecture](images/architecture.jpg)
+![Architecture générale](images/architecture.pdf)
 
 Dans la suite de ce chapitre, nous décrirons en détail chaque composant et étape de notre pipeline d'architecture. Cela inclut la description des modules et techniques utilisés dans la récupération et l'analyse des données, ainsi que les résultats obtenus et les implications pour notre projet.
 
@@ -142,7 +142,7 @@ Afin d’explorer les données que nous avons obtenues via le dump Wikipédia ai
 
 Notre cas d’étude est le film “Interstellar” réalisé par Christopher Nolan et sorti en 2014. Nous l’avons sélectionné tout simplement car nous l’avions tous deux vu, car il possède une évolution scénaristique typique (en 3 actes) et est centré sur des thématiques probablement simples à détecter de manière automatique : science-fiction, famille, amour, trahison.
 
-![Interstellar](images/interstellar.jpg)
+![Affiche du film Interstellar](images/interstellar.jpg){width=8cm}
 
 Les caractéristiques que nous souhaitons extraire de manière automatique sont les suivantes :
 - Analyse de sentiments depuis les lignes de dialogue, ce qui ramené à l’échelle du film entier permettrait de déterminer l’évolution dramatique générale tout au long du déroulement du film.
@@ -158,15 +158,15 @@ Nous avons donc groupé les sous-titres dans une fenêtre temporelle de 15 secon
 
 Ensuite, le texte est passé pour analyse de sentiments au modèle “Twitter-roBERTa-base for Sentiment Analysis” [twitter-roberta-base-sentiment-latest](https://huggingface.co/cardiffnlp/twitter-roberta-base-sentiment-latest) qui est un modèle de type BERT (transformer) entraîné pour la classification en 3 classes “négatif”, “positif” et “neutre” sur des extraits de Twitter. Ce modèle fournit en sortie un score de probabilité entre 0 et 1 pour les 3 classes.
 
-![sentiment_raw](images/sentiment_raw.png)
+![Scores bruts de l'analyse de sentiments](images/sentiment_raw.pdf)
 
 L’analyse “brute” des sentiments depuis les dialogues est très bruitée, ce qui était attendu car, comme dit plus haut, il est difficile de calculer la tonalité depuis le langage parlé. Sur ces données, nous avons appliqué un lissage par moyennes mouvantes en essayant plusieurs largeurs de fenêtre et avons obtenu des résultats très intéressants, et visuellement interprétables :
 
-![sentiment_mov_avg](images/sentiment_mov_avg.png)
+![Moyennes mouvantes des sentiments](images/sentiment_mov_avg.pdf)
 
 Premièrement, on constate de manière assez logique que les courbes sont inversement corrélées. Deuxièmement, les différents pics semblent marquer la présence de pivots dramatiques, et un dénouement très clairement positif dans les 15 dernières minutes. Nous avons analysé depuis le film lui-même à quoi ces pics correspondent (attention, « divulgâchage » du film ci-après) :
  
-![sentiment_interstellar](images/sentiment_interstellar.png)
+![Mise en relation avec les événements du scénario](images/sentiment_interstellar.pdf)
 
 <table>
 	<tr>
@@ -198,7 +198,7 @@ L’analyse semble ici avoir relativement bien représenté l’évolution drama
 À partir des données extraites au point précédent, nous nous sommes intéressés à caractériser l’évolution dramatique des films afin de pouvoir retrouver les films les plus similaires, ou du moins possédant une “signature” émotionnelle semblable.
 Nous avons commencé par ajouter une courbe aux données du film, en calculant simplement la différence entre le score positif et négatif sur les courbes lissées :
 
-![diff](images/diff.png)
+![Différence entre les sentiments positifs et négatifs](images/diff.pdf)
 
 Cette courbe est moins visuellement interprétable que la visualisation des courbes positive et négative, mais a le mérite de caractériser l’évolution de manière unidimensionnelle.
 
@@ -210,17 +210,17 @@ Ensuite, il nous a semblé hasardeux de comparer l’évolution dramatique des f
 
 Nous avons donc décidé de caractériser cette courbe “delta” en effectuant une régression polynomiale tout en normalisant la courbe sur une échelle de 0 à 100. Après quelques essais, le nombre de degrés de la régression a été fixé à 16 (donc 17 facteurs incluant le facteur constant) :
 
-![polyfit](images/polyfit.png)
+![Régression polynomial à 16 degrés sur la différence des sentiments](images/polyfit.pdf)
 
 Nous avons donc maintenant une caractérisation de l’évolution dramatique en 17 facteurs qui représente la “signature” du film. C’est sur cette base que nous allons pouvoir effectuer un calcul de similarité entre les films.
 
 Nous avons tenté de comparer ces signatures directement, en calculant l’erreur quadratique moyenne (MSE) sur les facteurs directement, cependant cette technique ne s’est pas avérée concluante car les valeurs de ceux-ci diffèrent de plusieurs ordres de magnitude :
 
-![match_poly](images/match_poly.png)
+![Correspondance sur les facteurs de différents films](images/match_poly.pdf)
 
 Nous avons donc directement calculé l’erreur quadratique moyenne sur les valeurs des courbes entre 0 et 100 et avons obtenu un résultat beaucoup plus pertinent :
 
-![match_curve](images/match_curve.png)
+![Correspondance sur les courbes de différents films](images/match_curve.pdf)
 
 Il est cependant à noter que rien ne garantit qu’une signature dramatique similaire permette de retrouver des films similaires dans leurs thématiques, car il ne s’agit que de l’évolution de la tonalité dramatique. Ces données devront donc être couplées avec la partie suivante qui s’occupe d’extraire les thèmes à partir des dialogues afin de retrouver des films réellement semblables, tant dans leurs thématiques que dans leur déroulement.
 
@@ -229,7 +229,7 @@ Les catégories dans lesquelles les films sont répertoriés n’ont parfois que
 
 Pour illustrer cet effet, on peut par exemple citer le film “Cloud Atlas” réalisé par Tom Tykwer ainsi que les sœurs Wachowski, sorti en 2012. Ce film raconte six histoires en parallèle, se déroulant à plusieurs époques différentes et avec des thèmes très variés.
 
-![cloud_atlas](images/cloud_atlas.jpg)
+![Affiche du film Cloud Atlas](images/cloud_atlas.jpg){width=8cm}
 
 De tous ces segments, seulement deux se déroulent dans le futur et pourtant le film est identifié dans les catégories ”science-fiction”, ”drame” et ”mystère” ([IMDB](https://www.imdb.com/title/tt1371111)).
 
@@ -237,7 +237,7 @@ En effectuant une extraction des thèmes directement depuis les dialogues du fil
 
 Nous avons tout d'abord tenté une approche purement "non supervisée", en utilisant une technique d'extraction des mots les plus pertinents dans tout le texte des dialogues du film. Cette technique, dont le code et les explications sont librement disponibles sur le blog [Topic Modeling BERT+LDA](https://www.kaggle.com/code/dskswu/topic-modeling-bert-lda), utilise un encodeur BERT, un algorithme de groupement thématique LDA et un autoencodeur pour créer des clusters thématiques. Le résultat est un nuage de mots représentant les plus importants clusters au sein du texte:
 
-![wordcloud](images/wordcloud.png)
+![Nuage de mots résultant de l'analyse](images/wordcloud.png){width=14cm}
 
 Nous avons cependant abandonné cette idée pour plusieurs raisons:
 
@@ -255,11 +255,11 @@ Pour cette analyse, nous ne procédons plus ligne par ligne, mais en concaténan
 
 Enfin, à partie de la sortie du modèle, nous associons les tags ayant les plus grandes probabilités, tout d'abord en prenant les 3 plus grandes (afin de systématiquement avoir 3 valeurs pour chaque film, même si les probabilités sont faibles) puis en sélectionnant les éventuelles suivantes si elles dépassent un certain seuil. Sur les 9170 films de notre sélection, nous obtenons ainsi la distribution suivante:
 
-![tags_per_movie](images/tags_per_movie.png)
+![Nombre de tags par film](images/tags_per_movie.pdf){width=12cm}
 
 En examinant la distribution par tag pour les 25% les plus fréquents, celle-ci est, comme on pouvait s'y attendre, assez inégale:
 
-![tags_dist](images/tags_dist.png)
+![Distribution des tags les plus fréquents](images/tags_dist.pdf)
 
 Sans surprise, ce sont les tags les plus génériques qui sont les plus fréquemment associés, alors que les tags plus spécifiques le sont beaucoup plus rarement (75 valeurs très petites ne sont pas affichées).
 
@@ -289,7 +289,7 @@ Pour chaque film, nous avons ainsi calculé 3 scores:
 - Flesch–Kincaid readability score: cet indicateur mesure la difficulté de compréhension d'un texte, basée principalement sur la longueur des mots et des phrases. Ici, le score va de 0 à 100 et plus le score est élevé, plus le texte est facile à lire. L'anglais conversationnel moyen se situe à des scores entre 80 et 90, c'est donc les valeurs que nous nous attendons à avoir pour les dialogues des films.
 - Readability Consensus: cet indicateur fourni par le package `textstat` est une moyenne de plusieurs autres indicateurs de lisibilité qui représentent le niveau scolaire américain requis pour la bonne compréhension du texte. 
 
-![nlp](images/nlp.png)
+![Statistiques linguistiques sur tous les films](images/nlp.png){width=14cm}
 
 Sur cette figure, les outliers ont été supprimés. Nous constatons que la lisibilité est globalement très bonne, avec des scores Flesch–Kincaid plus élevés que 90 dans la plupart des cas. Le score de lisibilité indique que la majorité des films (ou en tout cas la pure lisibilité de leurs dialogues) sont compréhensibles pour des élèves de 3 à 5ème année, donc entre 8 et 11 ans.
 
@@ -304,7 +304,7 @@ Nous avons globalement respecté ce que nous avions prévu dans le planning init
 
 Enfin, dans la planification initiale nous n'avions pas prévu de temps pour le rapport, qui s'est pourtant avéré une partie non négligeable. La planification finale est par conséquent la suivante:
 
-![planning_final](images/planning_final.jpg)
+![Planning final](images/planning_final.pdf)
 
 ## Limites et améliorations
 
@@ -316,7 +316,7 @@ L'une des limites de notre projet est la difficulté à analyser correctement le
 
 Cela peut inclure des films qui utilisent principalement des éléments visuels pour transmettre leur histoire, ainsi que ceux qui ont un style plus minimaliste dans leur narration. Un bon exemple de ceci est le film expérimental "Amer" sorti en 2009 qui comporte en tout et pour tout 40 répliques sur 1h30 de film.
 
-![amer](images/amer.jpg)
+![Affiche du film Amer](images/amer.jpg){width=8cm}
 
 Dans ces cas, notre modèle pourrait ne pas être en mesure de capturer l'essence des films et de leur apporter la pertinence qu'ils méritent. Cependant, étant donné la nature basée sur le texte des techniques d'analyse du langage naturel (NLP) que nous utilisons, il est difficile de proposer une solution alternative pour traiter ces films sans pour autant s'appuyer sur d'autres types de données, telles que l'analyse d'images ou de séquences vidéo, ce qui est largement en dehors du contexte de ce projet.
 
@@ -342,8 +342,8 @@ Si nous devions continuer ce projet plus longuement, les améliorations suivante
 
 - Extraire d'autres informations: au moyen du texte au cours du film, nous pourrions détecter encore plus de marqueurs, comme par exemple à quel point un film est vulgaire ou détecter le contexte dans lequel se déroule les événements (géographique, sociaux, temporels, ...). On peut même imaginer reprendre l'idée des tags et analyser à quel moment du film les dialogues les font ressortir:
 
-![interstellar_tag_per_time](images/interstellar_tag_per_time.png)
+![Évolution des tags au cours du film](images/interstellar_tag_per_time.pdf)
 
 - Soyons fous: dans un monde idéal, nous disposerions aussi du fichier vidéo associé à chaque film, ce qui nous permettrait d'utiliser la piste sonore, ainsi que la piste vidéo pour renforcer notre analyse. Par exemple, même si une ligne de dialogue semble banale en n'examinant que le fichier de sous-titres, les informations apportées par le son (intensité, fréquences, autres informations apportées après traitement du signal comme les MFCCs) pourraient améliorer la détection de l'émotion exprimée lors d'une scène. C'est par exemple ainsi que procèdent certaines plateformes de vidéo pour détecter les changements d'intensité dans les vidéos, par exemple ici sur Youtube:
 
-![sa_youtube](images/sa_youtube.jpg)
+![Analyse d'intensité sur une vidéo Youtube](images/sa_youtube.jpg){width=12cm}
